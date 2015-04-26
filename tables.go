@@ -1,10 +1,11 @@
 package main
 
 type User struct {
-	Id      int    `json:"id"`
-	Name    string `json:"name"`
-	Email   string `json:"email"`
-	Country string `json:"country"`
+	Id        string `json:"id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Country   string `json:"country"`
 }
 
 type Users []User

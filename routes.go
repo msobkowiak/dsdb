@@ -48,4 +48,10 @@ var routes = Routes{
 		"/tables",
 		TablesIndex,
 	},
+	Route{
+		"Table",
+		"GET",
+		"/{table}/primary/{hash}",
+		TableGetByHash,
+	},
 }

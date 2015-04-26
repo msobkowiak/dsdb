@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/dynamodb"
@@ -33,6 +34,33 @@ func RepoCreateTodo(t Todo) Todo {
 	t.Id = currentId
 	todos = append(todos, t)
 	return t
+}
+
+func createTableDescription(tableName string) dynamodb.Table {
+	db := Auth()
+
+	tableDescription, _ := db.DescribeTable(tableName)
+	pk, _ := tableDescription.BuildPrimaryKey()
+
+	return *db.NewTable(tableDescription.TableName, pk)
+}
+
+//func RepoGetItemByHash(tableName string, hash string) map[string]*dynamodb.Attribute {
+func RepoGetItemByHash(tableName string, hash string) []byte {
+	table := createTableDescription(tableName)
+	item, _ := table.GetItem(&dynamodb.Key{HashKey: hash})
+
+	var data User
+	data.Id = item["id"].Value
+	data.FirstName = item["first_name"].Value
+	data.LastName = item["last_name"].Value
+	data.Email = item["email"].Value
+	data.Country = item["counrty"].Value
+
+	log.Println(data)
+	jsonData, _ := json.Marshal(data)
+
+	return jsonData
 }
 
 func RepoCreateTable(t Table) Table {

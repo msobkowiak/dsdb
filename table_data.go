@@ -6,7 +6,7 @@ import (
 
 // structure of users table
 var users = dynamodb.TableDescriptionT{
-	TableName: "Users",
+	TableName: "users",
 	AttributeDefinitions: []dynamodb.AttributeDefinitionT{
 		dynamodb.AttributeDefinitionT{"id", "N"},
 	},
