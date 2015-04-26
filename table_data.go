@@ -4,22 +4,19 @@ import (
 	"github.com/goamz/goamz/dynamodb"
 )
 
-// structure of users table
-var users = dynamodb.TableDescriptionT{
-	TableName: "users",
-	AttributeDefinitions: []dynamodb.AttributeDefinitionT{
-		dynamodb.AttributeDefinitionT{"id", "N"},
-	},
-	KeySchema: []dynamodb.KeySchemaT{
-		dynamodb.KeySchemaT{"id", "HASH"},
-	},
-	ProvisionedThroughput: dynamodb.ProvisionedThroughputT{
-		ReadCapacityUnits:  40,
-		WriteCapacityUnits: 20,
-	},
+func GetUsersSchema() Table {
+	var usersSchema Table
+	usersSchema.Name = "users"
+	usersSchema.PrimaryKey.Name = "id"
+	usersSchema.PrimaryKey.AttributeType = "N"
+	usersSchema.PrimaryKey.KeyType = "HASH"
+	usersSchema.ReadCapacityUnits = 10
+	usersSchema.WriteCapacityUnits = 10
+
+	return usersSchema
 }
 
-func LoadData() [][]dynamodb.Attribute {
+func LoadUsersData() [][]dynamodb.Attribute {
 	var users_data = make([][]dynamodb.Attribute, 8)
 	users_data[0] = []dynamodb.Attribute{
 		*dynamodb.NewStringAttribute("first_name", "Monika"),

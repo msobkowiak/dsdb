@@ -1,27 +1,20 @@
 package main
 
 import (
-	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/dynamodb"
 	"log"
 	"strconv"
 )
 
-func Auth() dynamodb.Server {
-	dynamodbRegion := aws.Region{DynamoDBEndpoint: "http://127.0.0.1:4567"}
-	dynamodbAuth := aws.Auth{AccessKey: "key", SecretKey: "secret"}
-
-	return dynamodb.Server{
-		Auth:   dynamodbAuth,
-		Region: dynamodbRegion,
-	}
-}
-
 func deleteTable(db dynamodb.Server, table string) {
 	tabDescription, err := db.DescribeTable(table)
 	if err != nil {
-		delete, _ := db.DeleteTable(*tabDescription)
-		log.Println(delete)
+		log.Println(err)
+	} else {
+		_, err := db.DeleteTable(*tabDescription)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }
 
@@ -33,16 +26,18 @@ func deleteAllTables(db dynamodb.Server, tables []string) {
 
 func createTable(db dynamodb.Server, tab dynamodb.TableDescriptionT) {
 	// create a new table
-	pk, _ := users.BuildPrimaryKey()
+	pk, _ := tab.BuildPrimaryKey()
 	table := db.NewTable(tab.TableName, pk)
-	db.CreateTable(tab)
+	_, err := db.CreateTable(tab)
+	if err != nil {
+		log.Println(err)
+	}
 
 	// load data
-	data := LoadData()
-
+	data := LoadUsersData()
 	// put data into table
 	for i := range data {
-		ok, err := table.PutItem(strconv.FormatInt(int64(i), 10), "", data[i])
+		ok, err := table.PutItem(strconv.FormatInt(int64(i+1), 10), "", data[i])
 		if !ok {
 			log.Println(err)
 		}
@@ -56,15 +51,15 @@ func createAllTables(db dynamodb.Server, tables []dynamodb.TableDescriptionT) {
 }
 
 func Bootstrap() {
-	db := Auth()
+	db := Auth("http://127.0.0.1:4567", "key", "secret")
 
 	// cleanup the database
-	var tables = make([]string, 1)
-	tables[0] = "Users"
-	deleteAllTables(db, tables)
+	/*var tables = make([]string, 1)
+	tables[0] = "users"
+	deleteAllTables(db, tables)*/
 
 	// create tables
 	var tablesDescription = make([]dynamodb.TableDescriptionT, 1)
-	tablesDescription[0] = users
+	tablesDescription[0] = GetTableDescription(GetUsersSchema())
 	createAllTables(db, tablesDescription)
 }

@@ -37,18 +37,6 @@ var routes = Routes{
 		TodoCreate,
 	},
 	Route{
-		"TableCreate",
-		"POST",
-		"/create",
-		TableCreate,
-	},
-	Route{
-		"TablesIndex",
-		"GET",
-		"/tables",
-		TablesIndex,
-	},
-	Route{
 		"Table",
 		"GET",
 		"/{table}/primary/{hash}",

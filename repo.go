@@ -1,17 +1,13 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/dynamodb"
-	"log"
 )
 
 var currentId int
 
 var todos Todos
-var tables Tables
 
 // Give us some seed data
 func init() {
@@ -36,64 +32,22 @@ func RepoCreateTodo(t Todo) Todo {
 	return t
 }
 
-func createTableDescription(tableName string) dynamodb.Table {
-	db := Auth()
+func RepoGetItemByHash(tableName string, hash string) map[string]string {
+	table := GetTable(tableName)
+	item, err := table.GetItem(&dynamodb.Key{HashKey: hash})
+	if err != nil {
+		var ex = make(map[string]string)
+		ex["exception"] = "The hash " + hash + " not found in table " + tableName
 
-	tableDescription, _ := db.DescribeTable(tableName)
-	pk, _ := tableDescription.BuildPrimaryKey()
-
-	return *db.NewTable(tableDescription.TableName, pk)
-}
-
-//func RepoGetItemByHash(tableName string, hash string) map[string]*dynamodb.Attribute {
-func RepoGetItemByHash(tableName string, hash string) []byte {
-	table := createTableDescription(tableName)
-	item, _ := table.GetItem(&dynamodb.Key{HashKey: hash})
-
-	var data User
-	data.Id = item["id"].Value
-	data.FirstName = item["first_name"].Value
-	data.LastName = item["last_name"].Value
-	data.Email = item["email"].Value
-	data.Country = item["counrty"].Value
-
-	log.Println(data)
-	jsonData, _ := json.Marshal(data)
-
-	return jsonData
-}
-
-func RepoCreateTable(t Table) Table {
-	var tab = dynamodb.TableDescriptionT{
-		TableName: t.Name,
-		AttributeDefinitions: []dynamodb.AttributeDefinitionT{
-			dynamodb.AttributeDefinitionT{"id", t.Id},
-		},
-		KeySchema: []dynamodb.KeySchemaT{
-			dynamodb.KeySchemaT{"id", t.IdType},
-		},
-		ProvisionedThroughput: dynamodb.ProvisionedThroughputT{
-			ReadCapacityUnits:  t.ReadThrouput,
-			WriteCapacityUnits: t.WriteThrouput,
-		},
+		return ex
 	}
 
-	dynamodbRegion := aws.Region{DynamoDBEndpoint: "http://127.0.0.1:4567"}
-	dynamodbAuth := aws.Auth{AccessKey: "key", SecretKey: "secret"}
-
-	ddbs := dynamodb.Server{
-		Auth:   dynamodbAuth,
-		Region: dynamodbRegion,
+	var data = make(map[string]string)
+	for key := range item {
+		data[key] = item[key].Value
 	}
 
-	// create a new table
-	pk, _ := tab.BuildPrimaryKey()
-	catalog := ddbs.NewTable(tab.TableName, pk)
-	log.Println(catalog)
-	ddbs.CreateTable(tab)
-
-	tables = append(tables, t)
-	return t
+	return data
 }
 
 func RepoDestroyTodo(id int) error {
