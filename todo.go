@@ -1,4 +1,4 @@
-package dsbs
+package main
 
 import "time"
 
