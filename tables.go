@@ -1,4 +1,4 @@
-package main
+package dsbs
 
 type User struct {
 	Id      int    `json:"id"`

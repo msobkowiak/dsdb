@@ -19,7 +19,7 @@ var users = dynamodb.TableDescriptionT{
 	},
 }
 
-func LoadUsersData() [][]dynamodb.Attribute {
+func LoadData() [][]dynamodb.Attribute {
 	var users_data = make([][]dynamodb.Attribute, 8)
 	users_data[0] = []dynamodb.Attribute{
 		*dynamodb.NewStringAttribute("first_name", "Monika"),
