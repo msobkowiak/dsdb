@@ -18,14 +18,20 @@ func deleteTable(db dynamodb.Server, table string) {
 	}
 }
 
-func deleteAllTables(db dynamodb.Server, tables []string) {
-	for i := range tables {
-		deleteTable(db, tables[i])
+func deleteAllTables(db dynamodb.Server) {
+	tables, err := db.ListTables()
+	if err != nil {
+		log.Println(err)
+	} else {
+		for i := range tables {
+			deleteTable(db, tables[i])
+		}
 	}
 }
 
-func createTable(db dynamodb.Server, tab dynamodb.TableDescriptionT) {
+func createUsersTable(db dynamodb.Server) {
 	// create a new table
+	tab := GetTableDescription(GetUsersSchema())
 	pk, _ := tab.BuildPrimaryKey()
 	table := db.NewTable(tab.TableName, pk)
 	_, err := db.CreateTable(tab)
@@ -44,22 +50,36 @@ func createTable(db dynamodb.Server, tab dynamodb.TableDescriptionT) {
 	}
 }
 
-func createAllTables(db dynamodb.Server, tables []dynamodb.TableDescriptionT) {
-	for i := range tables {
-		createTable(db, tables[i])
+func createGameScoreTable(db dynamodb.Server) {
+	// create a new table
+	tab := GetTableDescription(GetGameScoreSchema())
+	pk, _ := tab.BuildPrimaryKey()
+	table := db.NewTable(tab.TableName, pk)
+	_, err := db.CreateTable(tab)
+	if err != nil {
+		log.Println(err)
 	}
+
+	// load data
+	data, rangeKey := LoadGameScoreData()
+	// put data into table
+	for i := range data {
+		ok, err := table.PutItem(strconv.FormatInt(int64(i+1), 10), rangeKey[i], data[i])
+		if !ok {
+			log.Println(err)
+		}
+	}
+}
+
+func createAllTables(db dynamodb.Server) {
+	createUsersTable(db)
+	createGameScoreTable(db)
 }
 
 func Bootstrap() {
 	db := Auth("http://127.0.0.1:4567", "key", "secret")
 
 	// cleanup the database
-	/*var tables = make([]string, 1)
-	tables[0] = "users"
-	deleteAllTables(db, tables)*/
-
-	// create tables
-	var tablesDescription = make([]dynamodb.TableDescriptionT, 1)
-	tablesDescription[0] = GetTableDescription(GetUsersSchema())
-	createAllTables(db, tablesDescription)
+	//deleteAllTables(db)
+	createAllTables(db)
 }

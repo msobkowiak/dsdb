@@ -18,15 +18,40 @@ func Auth(region, accessKey, secretKey string) dynamodb.Server {
 		Region: dynamodbRegion,
 	}
 }
-
 func GetTableDescription(t Table) dynamodb.TableDescriptionT {
+	if t.RangeKey.Name == "" {
+		return getTableDescriptionHash(t)
+	}
+
+	return getTableDescriptionHashRange(t)
+}
+
+func getTableDescriptionHash(t Table) dynamodb.TableDescriptionT {
 	return dynamodb.TableDescriptionT{
 		TableName: t.Name,
 		AttributeDefinitions: []dynamodb.AttributeDefinitionT{
-			dynamodb.AttributeDefinitionT{t.PrimaryKey.Name, t.PrimaryKey.AttributeType},
+			dynamodb.AttributeDefinitionT{t.HashKey.Name, t.HashKey.AttributeType},
 		},
 		KeySchema: []dynamodb.KeySchemaT{
-			dynamodb.KeySchemaT{t.PrimaryKey.Name, t.PrimaryKey.KeyType},
+			dynamodb.KeySchemaT{t.HashKey.Name, t.HashKey.KeyType},
+		},
+		ProvisionedThroughput: dynamodb.ProvisionedThroughputT{
+			ReadCapacityUnits:  t.ReadCapacityUnits,
+			WriteCapacityUnits: t.WriteCapacityUnits,
+		},
+	}
+}
+
+func getTableDescriptionHashRange(t Table) dynamodb.TableDescriptionT {
+	return dynamodb.TableDescriptionT{
+		TableName: t.Name,
+		AttributeDefinitions: []dynamodb.AttributeDefinitionT{
+			dynamodb.AttributeDefinitionT{t.HashKey.Name, t.HashKey.AttributeType},
+			dynamodb.AttributeDefinitionT{t.RangeKey.Name, t.RangeKey.AttributeType},
+		},
+		KeySchema: []dynamodb.KeySchemaT{
+			dynamodb.KeySchemaT{t.HashKey.Name, t.HashKey.KeyType},
+			dynamodb.KeySchemaT{t.RangeKey.Name, t.RangeKey.KeyType},
 		},
 		ProvisionedThroughput: dynamodb.ProvisionedThroughputT{
 			ReadCapacityUnits:  t.ReadCapacityUnits,

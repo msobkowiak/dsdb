@@ -2,7 +2,8 @@ package main
 
 type Table struct {
 	Name               string
-	PrimaryKey         Key
+	HashKey            Key
+	RangeKey           Key
 	ReadCapacityUnits  int64
 	WriteCapacityUnits int64
 }
