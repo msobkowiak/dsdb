@@ -40,6 +40,18 @@ func TableGetByHash(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(item)
 }
 
+func TableGetByHashRange(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	hash := vars["hash"]
+	rangeKey := vars["range"]
+	table := vars["table"]
+
+	item := RepoGetItemByHashRange(table, hash, rangeKey)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusFound)
+	json.NewEncoder(w).Encode(item)
+}
+
 func TodoCreate(w http.ResponseWriter, r *http.Request) {
 	var todo Todo
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))

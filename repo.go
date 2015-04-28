@@ -32,12 +32,30 @@ func RepoCreateTodo(t Todo) Todo {
 	return t
 }
 
-func RepoGetItemByHash(tableName string, hash string) map[string]string {
+func RepoGetItemByHash(tableName, hash string) map[string]string {
 	table := GetTable(tableName)
 	item, err := table.GetItem(&dynamodb.Key{HashKey: hash})
 	if err != nil {
 		var ex = make(map[string]string)
 		ex["exception"] = "The hash " + hash + " not found in table " + tableName
+
+		return ex
+	}
+
+	var data = make(map[string]string)
+	for key := range item {
+		data[key] = item[key].Value
+	}
+
+	return data
+}
+
+func RepoGetItemByHashRange(tableName, hashKey, rangeKey string) map[string]string {
+	table := GetTable(tableName)
+	item, err := table.GetItem(&dynamodb.Key{HashKey: hashKey, RangeKey: rangeKey})
+	if err != nil {
+		var ex = make(map[string]string)
+		ex["exception"] = "The hash " + hashKey + " and range " + rangeKey + " not found in table " + tableName
 
 		return ex
 	}

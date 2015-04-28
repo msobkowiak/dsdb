@@ -63,7 +63,7 @@ func getTableDescriptionHashRange(t Table) dynamodb.TableDescriptionT {
 func GetTable(tableName string) dynamodb.Table {
 	db := Auth("http://127.0.0.1:4567", "key", "secret")
 
-	tableDescription := GetTableDescription(GetUsersSchema())
+	tableDescription := GetTableDescription(GetSchema(tableName))
 	pk, _ := tableDescription.BuildPrimaryKey()
 
 	return *db.NewTable(tableDescription.TableName, pk)

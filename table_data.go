@@ -4,7 +4,15 @@ import (
 	"github.com/goamz/goamz/dynamodb"
 )
 
-func GetUsersSchema() Table {
+func GetSchema(tableName string) Table {
+	if tableName == "users" {
+		return getUsersSchema()
+	}
+
+	return getGameScoreSchema()
+}
+
+func getUsersSchema() Table {
 	var t Table
 	t.Name = "users"
 	t.HashKey.Name = "id"
@@ -16,9 +24,9 @@ func GetUsersSchema() Table {
 	return t
 }
 
-func GetGameScoreSchema() Table {
+func getGameScoreSchema() Table {
 	var t Table
-	t.Name = "game_score"
+	t.Name = "game_scores"
 	t.HashKey.Name = "user_id"
 	t.HashKey.AttributeType = "N"
 	t.HashKey.KeyType = "HASH"
