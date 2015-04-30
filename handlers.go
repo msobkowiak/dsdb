@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	//"log"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -29,7 +29,17 @@ func TodoShow(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Todo show:", todoId)
 }
 
-func TableGetByHash(w http.ResponseWriter, r *http.Request) {
+func GetAllItems(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	table := vars["table"]
+
+	item := RepoGetAllItems(table)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusFound)
+	json.NewEncoder(w).Encode(item)
+}
+
+func GetByHash(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	hash := vars["hash"]
 	table := vars["table"]
@@ -40,13 +50,45 @@ func TableGetByHash(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(item)
 }
 
-func TableGetByHashRange(w http.ResponseWriter, r *http.Request) {
+func GetByHashRange(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	hash := vars["hash"]
 	rangeKey := vars["range"]
 	table := vars["table"]
 
 	item := RepoGetItemByHashRange(table, hash, rangeKey)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusFound)
+	json.NewEncoder(w).Encode(item)
+}
+
+func GetByHashRangeOp(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	log.Println(vars)
+	hash := vars["hash"]
+	rangeKey := vars["range"]
+	operator := vars["op"]
+	value := vars["value"]
+	table := vars["table"]
+	log.Println(vars)
+
+	item := RepoGetItemByHashRangeOp(table, hash, rangeKey, operator, value)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusFound)
+	json.NewEncoder(w).Encode(item)
+}
+
+func GetByHashRangeBetween(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	log.Println(vars)
+	hash := vars["hash"]
+	rangeKey := vars["range"]
+	value1 := vars["value1"]
+	value2 := vars["value2"]
+	table := vars["table"]
+	log.Println(vars)
+
+	item := RepoGetItemByHashRangeOp(table, hash, rangeKey, value1, value2)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusFound)
 	json.NewEncoder(w).Encode(item)

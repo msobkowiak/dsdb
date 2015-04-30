@@ -39,13 +39,31 @@ var routes = Routes{
 	Route{
 		"Table",
 		"GET",
+		"/{table}",
+		GetAllItems,
+	},
+	Route{
+		"Table",
+		"GET",
 		"/{table}/primary/{hash}",
-		TableGetByHash,
+		GetByHash,
 	},
 	Route{
 		"Table",
 		"GET",
 		"/{table}/primary/{hash}/{range}",
-		TableGetByHashRange,
+		GetByHashRange,
+	},
+	Route{
+		"Table",
+		"GET",
+		"/{table}/primary/{hash}/{range}/{op:EQ|LE|LT|GE|GT|BEGINS_WITH}/{value}",
+		GetByHashRangeOp,
+	},
+	Route{
+		"Table",
+		"GET",
+		"/{table}/primary/{hash}/{range}/BETWEEN/{value1}/{value2}",
+		GetByHashRangeBetween,
 	},
 }
