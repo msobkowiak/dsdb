@@ -7,9 +7,13 @@ import (
 func GetSchema(tableName string) Table {
 	if tableName == "users" {
 		return getUsersSchema()
+	} else if tableName == "game_scores" {
+		return getGameScoreSchema()
 	}
 
-	return getGameScoreSchema()
+	return Table{
+		Name: tableName,
+	}
 }
 
 func getUsersSchema() Table {
