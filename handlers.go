@@ -62,17 +62,15 @@ func GetByHashRange(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(item)
 }
 
-func GetByHashRangeOp(w http.ResponseWriter, r *http.Request) {
+func GetByRange(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	log.Println(vars)
-	hash := vars["hash"]
 	rangeKey := vars["range"]
 	operator := vars["op"]
 	value := vars["value"]
 	table := vars["table"]
 	log.Println(vars)
 
-	item := RepoGetItemByHashRangeOp(table, hash, rangeKey, operator, value)
+	item := RepoGetItemByRange(table, rangeKey, operator, value)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusFound)
 	json.NewEncoder(w).Encode(item)
@@ -81,17 +79,30 @@ func GetByHashRangeOp(w http.ResponseWriter, r *http.Request) {
 func GetByHashRangeBetween(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	log.Println(vars)
-	hash := vars["hash"]
 	rangeKey := vars["range"]
 	value1 := vars["value1"]
 	value2 := vars["value2"]
 	table := vars["table"]
 	log.Println(vars)
 
-	item := RepoGetItemByHashRangeOp(table, hash, rangeKey, value1, value2)
+	item := RepoGetItemByRange(table, rangeKey, value1, value2)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusFound)
 	json.NewEncoder(w).Encode(item)
+}
+
+func DeleteByHash(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	hash := vars["hash"]
+	table := vars["table"]
+
+	ok, err := RepoDeleteItemByHash(table, hash)
+	if ok {
+		w.WriteHeader(http.StatusNoContent)
+	} else {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err)
+	}
 }
 
 func TodoCreate(w http.ResponseWriter, r *http.Request) {

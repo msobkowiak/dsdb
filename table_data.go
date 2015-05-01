@@ -27,11 +27,11 @@ func getUsersSchema() Table {
 func getGameScoreSchema() Table {
 	var t Table
 	t.Name = "game_scores"
-	t.HashKey.Name = "user_id"
-	t.HashKey.AttributeType = "N"
+	t.HashKey.Name = "game_title"
+	t.HashKey.AttributeType = "S"
 	t.HashKey.KeyType = "HASH"
-	t.RangeKey.Name = "game_title"
-	t.RangeKey.AttributeType = "S"
+	t.RangeKey.Name = "user_id"
+	t.RangeKey.AttributeType = "N"
 	t.RangeKey.KeyType = "RANGE"
 	t.ReadCapacityUnits = 10
 	t.WriteCapacityUnits = 10

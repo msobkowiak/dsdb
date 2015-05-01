@@ -64,7 +64,7 @@ func createGameScoreTable(db dynamodb.Server) {
 	data, rangeKey := LoadGameScoreData()
 	// put data into table
 	for i := range data {
-		ok, err := table.PutItem(strconv.FormatInt(int64(i+1), 10), rangeKey[i], data[i])
+		ok, err := table.PutItem(rangeKey[i], strconv.FormatInt(int64(i+1), 10), data[i])
 		if !ok {
 			log.Println(err)
 		}
