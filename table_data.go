@@ -132,15 +132,15 @@ func LoadGameScoreData() ([][]dynamodb.Attribute, []string) {
 		*dynamodb.NewNumericAttribute("wins", "70"),
 	}
 
-	var rangeKeys = make([]string, 8)
-	rangeKeys[0] = "Mario Brodes"
-	rangeKeys[1] = "Medal of Honor"
-	rangeKeys[2] = "Game X"
-	rangeKeys[3] = "Mario Brodes"
-	rangeKeys[4] = "Game X"
-	rangeKeys[5] = "Game Y"
-	rangeKeys[6] = "Game Y"
-	rangeKeys[7] = "Mario Brodes"
+	var hashKeys = make([]string, 8)
+	hashKeys[0] = "Mario Brodes"
+	hashKeys[1] = "Medal of Honor"
+	hashKeys[2] = "Game X"
+	hashKeys[3] = "Mario Brodes"
+	hashKeys[4] = "Game X"
+	hashKeys[5] = "Game Y"
+	hashKeys[6] = "Game Y"
+	hashKeys[7] = "Mario Brodes"
 
-	return data, rangeKeys
+	return data, hashKeys
 }

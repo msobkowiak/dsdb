@@ -15,25 +15,19 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Welcome!")
 }
 
-func TodoShow(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	todoId := vars["todoId"]
-	fmt.Fprintln(w, "Todo show:", todoId)
-}
-
 func GetAllItems(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	table := vars["table"]
 
-	item, err := RepoGetAllItems(table)
+	data, err := RepoGetAllItems(table)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(GetErrorMsg(err, 404))
 	} else {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusFound)
-		json.NewEncoder(w).Encode(item)
+		json.NewEncoder(w).Encode(data)
 	}
 }
 
@@ -42,10 +36,11 @@ func GetByHash(w http.ResponseWriter, r *http.Request) {
 	hash := vars["hash"]
 	table := vars["table"]
 
-	item := RepoGetItemByHash(table, hash)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusFound)
-	json.NewEncoder(w).Encode(item)
+	if GetSchema(table).HasRange() {
+		getIremWithRamge(table, hash, w)
+	} else {
+		getItem(table, hash, w)
+	}
 }
 
 func GetByHashRange(w http.ResponseWriter, r *http.Request) {
@@ -54,39 +49,34 @@ func GetByHashRange(w http.ResponseWriter, r *http.Request) {
 	rangeKey := vars["range"]
 	table := vars["table"]
 
-	item := RepoGetItemByHashRange(table, hash, rangeKey)
+	data, err := RepoGetItemByHashRange(table, hash, rangeKey)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusFound)
-	json.NewEncoder(w).Encode(item)
+
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(GetErrorMsg(err, 404))
+	} else {
+		w.WriteHeader(http.StatusFound)
+		json.NewEncoder(w).Encode(data)
+	}
 }
 
 func GetByRange(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	rangeKey := vars["range"]
-	operator := vars["op"]
-	value := vars["value"]
 	table := vars["table"]
 	log.Println(vars)
 
-	item := RepoGetItemByRange(table, rangeKey, operator, value)
+	data, err := RepoGetItemByRange(table, rangeKey)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusFound)
-	json.NewEncoder(w).Encode(item)
-}
 
-func GetByHashRangeBetween(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	log.Println(vars)
-	rangeKey := vars["range"]
-	value1 := vars["value1"]
-	value2 := vars["value2"]
-	table := vars["table"]
-	log.Println(vars)
-
-	item := RepoGetItemByRange(table, rangeKey, value1, value2)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusFound)
-	json.NewEncoder(w).Encode(item)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(GetErrorMsg(err, 404))
+	} else {
+		w.WriteHeader(http.StatusFound)
+		json.NewEncoder(w).Encode(data)
+	}
 }
 
 func DeleteByHash(w http.ResponseWriter, r *http.Request) {
@@ -94,7 +84,22 @@ func DeleteByHash(w http.ResponseWriter, r *http.Request) {
 	hash := vars["hash"]
 	table := vars["table"]
 
-	ok, err := RepoDeleteItemByHash(table, hash)
+	ok, err := RepoDeleteItem(table, hash)
+	if ok {
+		w.WriteHeader(http.StatusNoContent)
+	} else {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err)
+	}
+}
+
+func DeleteByHashRange(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	hashKey := vars["hash"]
+	rangeKey := vars["range"]
+	table := vars["table"]
+
+	ok, err := RepoDeleteItemWithRange(table, hashKey, rangeKey)
 	if ok {
 		w.WriteHeader(http.StatusNoContent)
 	} else {
@@ -127,3 +132,29 @@ func DeleteByHash(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 }*/
+
+func getItem(table, hash string, w http.ResponseWriter) {
+	data, err := RepoGetItemByHash(table, hash)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(GetErrorMsg(err, 404))
+	} else {
+		w.WriteHeader(http.StatusFound)
+		json.NewEncoder(w).Encode(data)
+	}
+}
+
+func getIremWithRamge(table, hash string, w http.ResponseWriter) {
+	data, err := RepoGetItemByRange(table, hash)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(GetErrorMsg(err, 404))
+	} else {
+		w.WriteHeader(http.StatusFound)
+		json.NewEncoder(w).Encode(data)
+	}
+}

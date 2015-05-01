@@ -18,12 +18,13 @@ func Auth(region, accessKey, secretKey string) dynamodb.Server {
 		Region: dynamodbRegion,
 	}
 }
-func GetTableDescription(t Table) dynamodb.TableDescriptionT {
-	if t.RangeKey.Name == "" {
-		return getTableDescriptionHash(t)
-	}
+func GetTableDescription(t Table) (dynamodb.TableDescriptionT, bool) {
+	//if t.HasRange() {
 
-	return getTableDescriptionHashRange(t)
+	if t.HasRange() {
+		return getTableDescriptionHashRange(t), false
+	}
+	return getTableDescriptionHash(t), true
 }
 
 func getTableDescriptionHash(t Table) dynamodb.TableDescriptionT {
@@ -60,11 +61,11 @@ func getTableDescriptionHashRange(t Table) dynamodb.TableDescriptionT {
 	}
 }
 
-func GetTable(tableName string) dynamodb.Table {
+func GetTable(tableName string) (dynamodb.Table, bool) {
 	db := Auth("http://127.0.0.1:4567", "key", "secret")
 
-	tableDescription := GetTableDescription(GetSchema(tableName))
+	tableDescription, hasRange := GetTableDescription(GetSchema(tableName))
 	pk, _ := tableDescription.BuildPrimaryKey()
 
-	return *db.NewTable(tableDescription.TableName, pk)
+	return *db.NewTable(tableDescription.TableName, pk), hasRange
 }

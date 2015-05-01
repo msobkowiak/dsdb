@@ -2,11 +2,10 @@ package main
 
 import (
 	"github.com/goamz/goamz/dynamodb"
-	"log"
 )
 
 func RepoGetAllItems(tableName string) ([]map[string]string, error) {
-	table := GetTable(tableName)
+	table, _ := GetTable(tableName)
 	items, err := table.Scan(nil)
 	if err != nil {
 		return nil, err
@@ -15,83 +14,60 @@ func RepoGetAllItems(tableName string) ([]map[string]string, error) {
 	return getDataAsArray(items), nil
 }
 
-func RepoGetItemByHash(tableName, hash string) map[string]string {
-	table := GetTable(tableName)
+func RepoGetItemByHash(tableName, hash string) (map[string]string, error) {
+	table, _ := GetTable(tableName)
+
 	item, err := table.GetItem(&dynamodb.Key{HashKey: hash})
 	if err != nil {
-		var ex = make(map[string]string)
-		ex["exception"] = "The hash " + hash + " not found in table " + tableName
-		log.Println(err)
-
-		return ex
+		return nil, err
 	}
 
-	return getData(item)
+	return getData(item), nil
+
 }
 
-func RepoDeleteItemByHash(tableName, hash string) (bool, error) {
-	table := GetTable(tableName)
-	status, err := table.DeleteItem(&dynamodb.Key{HashKey: hash})
+func RepoGetItemByHashRange(tableName, hashKey, rangeKey string) (map[string]string, error) {
+	table, _ := GetTable(tableName)
+	item, err := table.GetItem(&dynamodb.Key{HashKey: hashKey, RangeKey: rangeKey})
+	if err != nil {
+		return nil, err
+	}
+
+	return getData(item), nil
+}
+
+func RepoGetItemByRange(tableName, hash string) ([]map[string]string, error) {
+	table, _ := GetTable(tableName)
+	atrrComaparations := buildQueryParams(tableName, hash)
+
+	items, err := table.Query(atrrComaparations)
+	if err != nil {
+		return nil, err
+	}
+
+	return getDataAsArray(items), nil
+}
+
+// RepoSearch to be implemented here
+
+func RepoDeleteItem(tableName, hash string) (bool, error) {
+	schema := GetSchema(tableName)
+
+	if schema.HasRange() {
+		return deleteItems(tableName, hash, schema)
+	}
+
+	return deleteItem(tableName, hash)
+}
+
+func RepoDeleteItemWithRange(tableName, hashKey, rangeKey string) (bool, error) {
+	table, _ := GetTable(tableName)
+	status, err := table.DeleteItem(&dynamodb.Key{HashKey: hashKey, RangeKey: rangeKey})
 	if err != nil {
 		return status, err
 	}
 
 	return status, nil
-}
-
-func RepoGetItemByHashRange(tableName, hashKey, rangeKey string) map[string]string {
-	table := GetTable(tableName)
-	item, err := table.GetItem(&dynamodb.Key{HashKey: hashKey, RangeKey: rangeKey})
-	if err != nil {
-		var ex = make(map[string]string)
-		ex["exception"] = "The hash " + hashKey + " and range " + rangeKey + " not found in table " + tableName
-
-		return ex
-	}
-
-	var data = make(map[string]string)
-	for key := range item {
-		data[key] = item[key].Value
-	}
-
-	return data
-}
-
-func RepoGetItemByRange(tableName, rangeKey, operator, value string) []map[string]*dynamodb.Attribute {
-	//func RepoGetItemByHashRangeOp(tableName, hashKey, rangeKey, value string) map[string]string {
-	table := GetTable(tableName)
-	//item, err := table.GetItem(&dynamodb.Key{HashKey: hashKey, RangeKey: rangeKey})
-	var attrToGet = dynamodb.Attribute{
-		Value: value,
-		Name:  rangeKey,
-		Type:  "S",
-	}
-
-	var atrrs = make([]dynamodb.Attribute, 1)
-	atrrs[0] = attrToGet
-
-	var atrrComaration = dynamodb.AttributeComparison{
-		AttributeName:      rangeKey,
-		ComparisonOperator: "EQ",
-		AttributeValueList: atrrs,
-	}
-
-	var atrrComaparations = make([]dynamodb.AttributeComparison, 1)
-	atrrComaparations[0] = atrrComaration
-	item, err := table.Query(atrrComaparations)
-	if err != nil {
-		//var ex = make(map[string]string)
-		//ex["exception"] = "The range " + rangeKey + " not found in table " + tableName
-		log.Println(err)
-		//return ex
-	}
-	log.Println(item)
-	/*var data = make(map[string]string)
-	for key := range item {
-		data[key] = item[key].Value
-	}*/
-
-	return item
 }
 
 func getData(item map[string]*dynamodb.Attribute) map[string]string {
@@ -111,4 +87,49 @@ func getDataAsArray(items []map[string]*dynamodb.Attribute) []map[string]string 
 	}
 
 	return data
+}
+
+func buildQueryParams(tableName, hash string) []dynamodb.AttributeComparison {
+	schema := GetSchema(tableName)
+
+	var atrrs = make([]dynamodb.Attribute, 1)
+	atrrs[0] = dynamodb.Attribute{
+		Value: hash,
+		Name:  schema.HashKey.Name,
+		Type:  schema.HashKey.AttributeType,
+	}
+
+	var atrrComaparations = make([]dynamodb.AttributeComparison, 1)
+	atrrComaparations[0] = dynamodb.AttributeComparison{
+		AttributeName:      schema.HashKey.Name,
+		ComparisonOperator: "EQ",
+		AttributeValueList: atrrs,
+	}
+
+	return atrrComaparations
+}
+
+func deleteItem(tableName, hash string) (bool, error) {
+	table, _ := GetTable(tableName)
+
+	status, err := table.DeleteItem(&dynamodb.Key{HashKey: hash})
+	if err != nil {
+		return status, err
+	}
+
+	return status, nil
+}
+
+func deleteItems(tableName, hash string, schema Table) (bool, error) {
+	table, _ := GetTable(tableName)
+
+	items, _ := RepoGetItemByRange(tableName, hash)
+	for i := range items {
+		status, err := table.DeleteItem(&dynamodb.Key{HashKey: items[i][schema.HashKey.Name], RangeKey: items[i][schema.RangeKey.Name]})
+		if err != nil {
+			return status, err
+		}
+	}
+
+	return true, nil
 }

@@ -31,7 +31,7 @@ func deleteAllTables(db dynamodb.Server) {
 
 func createUsersTable(db dynamodb.Server) {
 	// create a new table
-	tab := GetTableDescription(GetSchema("users"))
+	tab, _ := GetTableDescription(GetSchema("users"))
 	pk, _ := tab.BuildPrimaryKey()
 	table := db.NewTable(tab.TableName, pk)
 	_, err := db.CreateTable(tab)
@@ -52,7 +52,7 @@ func createUsersTable(db dynamodb.Server) {
 
 func createGameScoreTable(db dynamodb.Server) {
 	// create a new table
-	tab := GetTableDescription(GetSchema("game_scores"))
+	tab, _ := GetTableDescription(GetSchema("game_scores"))
 	pk, _ := tab.BuildPrimaryKey()
 	table := db.NewTable(tab.TableName, pk)
 	_, err := db.CreateTable(tab)
@@ -61,10 +61,10 @@ func createGameScoreTable(db dynamodb.Server) {
 	}
 
 	// load data
-	data, rangeKey := LoadGameScoreData()
+	data, hashKeys := LoadGameScoreData()
 	// put data into table
 	for i := range data {
-		ok, err := table.PutItem(rangeKey[i], strconv.FormatInt(int64(i+1), 10), data[i])
+		ok, err := table.PutItem(hashKeys[i], strconv.FormatInt(int64(i+1), 10), data[i])
 		if !ok {
 			log.Println(err)
 		}

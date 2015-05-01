@@ -14,3 +14,15 @@ type Key struct {
 	KeyType       string
 	Value         string
 }
+
+func (t Table) HasRange() bool {
+	if t.RangeKey.Name != "" {
+		return true
+	}
+
+	return false
+}
+
+func (t Table) GetRangeName() string {
+	return t.HashKey.Name
+}

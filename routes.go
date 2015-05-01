@@ -19,12 +19,6 @@ var routes = Routes{
 		Index,
 	},
 	Route{
-		"TodoShow",
-		"GET",
-		"/todos/{todoId}",
-		TodoShow,
-	},
-	Route{
 		"GetAll",
 		"GET",
 		"/{table}",
@@ -37,28 +31,23 @@ var routes = Routes{
 		GetByHash,
 	},
 	Route{
-		"GetByHash",
-		"DELETE",
-		"/{table}/{hash}",
-		DeleteByHash,
-	},
-	Route{
 		"GetByHashRange",
 		"GET",
 		"/{table}/{hash}/{range}",
 		GetByHashRange,
 	},
+	// search route goes here
 	Route{
-		"FilterByRange",
-		"GET",
-		"/{table}/primary/{range}/{op:EQ|LE|LT|GE|GT|BEGINS_WITH}/{value}",
-		GetByRange,
+		"DeleteItem",
+		"DELETE",
+		"/{table}/{hash}",
+		DeleteByHash,
 	},
 	Route{
-		"FilterByRange",
-		"GET",
-		"/{table}/primary/{range}/BETWEEN/{value1}/{value2}",
-		GetByHashRangeBetween,
+		"DeleteItem",
+		"DELETE",
+		"/{table}/{hash}/{range}",
+		DeleteByHashRange,
 	},
 	/*Route{
 		"AddItem",
