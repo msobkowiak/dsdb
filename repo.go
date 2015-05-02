@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/goamz/goamz/dynamodb"
+	//"log"
 )
 
 func RepoGetAllItems(tableName string) ([]map[string]string, error) {
@@ -68,6 +69,42 @@ func RepoDeleteItemWithRange(tableName, hashKey, rangeKey string) (bool, error) 
 	}
 
 	return status, nil
+}
+
+/*
+[
+	{"Name":"first_name", "Type":"S", "Value":"monika"},
+	{"Name":"email", "Type":"S", "Value":"monika@example.pl"},
+	{"Name":"last_name", "Type":"S", "Value":"Nowak"},
+	{"Name":"counrty", "Type":"S", "Value":"Poland"}
+]
+*/
+func RepoAddItem(tableName, hash string, item []Attribute) (bool, error) {
+	table, _ := GetTable(tableName)
+
+	var attr = make([]dynamodb.Attribute, len(item))
+	for i := range item {
+		attr[i] = dynamodb.Attribute{
+			Type:  item[i].Type,
+			Name:  item[i].Name,
+			Value: item[i].Value,
+		}
+	}
+	return table.PutItem(hash, "", attr)
+}
+
+func RepoAddItemHashRange(tableName, hashKey, rangeKey string, item []Attribute) (bool, error) {
+	table, _ := GetTable(tableName)
+
+	var attr = make([]dynamodb.Attribute, len(item))
+	for i := range item {
+		attr[i] = dynamodb.Attribute{
+			Type:  item[i].Type,
+			Name:  item[i].Name,
+			Value: item[i].Value,
+		}
+	}
+	return table.PutItem(hashKey, rangeKey, attr)
 }
 
 func getData(item map[string]*dynamodb.Attribute) map[string]string {

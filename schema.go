@@ -15,6 +15,12 @@ type Key struct {
 	Value         string
 }
 
+type Attribute struct {
+	Type  string
+	Name  string
+	Value string
+}
+
 func (t Table) HasRange() bool {
 	if t.RangeKey.Name != "" {
 		return true
