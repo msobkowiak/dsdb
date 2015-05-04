@@ -39,7 +39,13 @@ func getGameScoreSchema() Table {
 	t.RangeKey.KeyType = "RANGE"
 	t.ReadCapacityUnits = 10
 	t.WriteCapacityUnits = 10
-
+	t.GlobalSecondaryIndex.Name = "wins"
+	t.GlobalSecondaryIndex.HashKey.Name = "game_title"
+	t.GlobalSecondaryIndex.HashKey.AttributeType = "S"
+	t.GlobalSecondaryIndex.HashKey.KeyType = "HASH"
+	t.GlobalSecondaryIndex.RangeKey.Name = "wins"
+	t.GlobalSecondaryIndex.RangeKey.AttributeType = "N"
+	t.GlobalSecondaryIndex.RangeKey.KeyType = "RANGE"
 	return t
 }
 
@@ -49,37 +55,37 @@ func LoadUsersData() [][]dynamodb.Attribute {
 		*dynamodb.NewStringAttribute("first_name", "Monika"),
 		*dynamodb.NewStringAttribute("last_name", "Sobkowiak"),
 		*dynamodb.NewStringAttribute("email", "monika@gmail.com"),
-		*dynamodb.NewStringAttribute("counrty", "Poland"),
+		*dynamodb.NewStringAttribute("country", "Poland"),
 	}
 	data[1] = []dynamodb.Attribute{
 		*dynamodb.NewStringAttribute("first_name", "Ana"),
 		*dynamodb.NewStringAttribute("last_name", "Dias"),
 		*dynamodb.NewStringAttribute("email", "ana@gmail.com"),
-		*dynamodb.NewStringAttribute("counrty", "Portugal"),
+		*dynamodb.NewStringAttribute("country", "Portugal"),
 	}
 	data[2] = []dynamodb.Attribute{
 		*dynamodb.NewStringAttribute("first_name", "Nuno"),
 		*dynamodb.NewStringAttribute("last_name", "Correia"),
 		*dynamodb.NewStringAttribute("email", "nuno@exemple.com"),
-		*dynamodb.NewStringAttribute("counrty", "Portugal"),
+		*dynamodb.NewStringAttribute("country", "Portugal"),
 	}
 	data[3] = []dynamodb.Attribute{
 		*dynamodb.NewStringAttribute("first_name", "Isabel"),
 		*dynamodb.NewStringAttribute("last_name", "Frenandes"),
 		*dynamodb.NewStringAttribute("email", "isabel@gmail.com"),
-		*dynamodb.NewStringAttribute("counrty", "Spain"),
+		*dynamodb.NewStringAttribute("country", "Spain"),
 	}
 	data[4] = []dynamodb.Attribute{
 		*dynamodb.NewStringAttribute("first_name", "Miguel"),
 		*dynamodb.NewStringAttribute("last_name", "Oliveira"),
 		*dynamodb.NewStringAttribute("email", "miguel@gmail.com"),
-		*dynamodb.NewStringAttribute("counrty", "Portugal"),
+		*dynamodb.NewStringAttribute("country", "Portugal"),
 	}
 	data[5] = []dynamodb.Attribute{
 		*dynamodb.NewStringAttribute("first_name", "Mikolaj"),
 		*dynamodb.NewStringAttribute("last_name", "Nowak"),
 		*dynamodb.NewStringAttribute("email", "mikolaj@exemple.com"),
-		*dynamodb.NewStringAttribute("counrty", "Poland"),
+		*dynamodb.NewStringAttribute("country", "Poland"),
 	}
 	data[6] = []dynamodb.Attribute{
 		*dynamodb.NewStringAttribute("first_name", "Joao"),
@@ -91,7 +97,7 @@ func LoadUsersData() [][]dynamodb.Attribute {
 		*dynamodb.NewStringAttribute("first_name", "Mat"),
 		*dynamodb.NewStringAttribute("last_name", "Deamon"),
 		*dynamodb.NewStringAttribute("email", "mat@gmail.com"),
-		*dynamodb.NewStringAttribute("counrty", "USA"),
+		*dynamodb.NewStringAttribute("country", "USA"),
 	}
 
 	return data
@@ -102,34 +108,42 @@ func LoadGameScoreData() ([][]dynamodb.Attribute, []string) {
 	data[0] = []dynamodb.Attribute{
 		*dynamodb.NewNumericAttribute("top_score", "5842"),
 		*dynamodb.NewNumericAttribute("wins", "8"),
+		*dynamodb.NewNumericAttribute("losts", "2"),
 	}
 	data[1] = []dynamodb.Attribute{
 		*dynamodb.NewNumericAttribute("top_score", "123"),
 		*dynamodb.NewNumericAttribute("wins", "3"),
+		*dynamodb.NewNumericAttribute("losts", "0"),
 	}
 	data[2] = []dynamodb.Attribute{
 		*dynamodb.NewNumericAttribute("top_score", "333333"),
 		*dynamodb.NewNumericAttribute("wins", "30"),
+		*dynamodb.NewNumericAttribute("losts", "90"),
 	}
 	data[3] = []dynamodb.Attribute{
 		*dynamodb.NewNumericAttribute("top_score", "12"),
 		*dynamodb.NewNumericAttribute("wins", "2"),
+		*dynamodb.NewNumericAttribute("losts", "2"),
 	}
 	data[4] = []dynamodb.Attribute{
 		*dynamodb.NewNumericAttribute("top_score", "45"),
 		*dynamodb.NewNumericAttribute("wins", "5"),
+		*dynamodb.NewNumericAttribute("losts", "1"),
 	}
 	data[5] = []dynamodb.Attribute{
 		*dynamodb.NewNumericAttribute("top_score", "667854"),
 		*dynamodb.NewNumericAttribute("wins", "399"),
+		*dynamodb.NewNumericAttribute("losts", "100"),
 	}
 	data[6] = []dynamodb.Attribute{
 		*dynamodb.NewNumericAttribute("top_score", "23"),
 		*dynamodb.NewNumericAttribute("wins", "1"),
+		*dynamodb.NewNumericAttribute("losts", "30"),
 	}
 	data[7] = []dynamodb.Attribute{
 		*dynamodb.NewNumericAttribute("top_score", "58542"),
 		*dynamodb.NewNumericAttribute("wins", "70"),
+		*dynamodb.NewNumericAttribute("losts", "2"),
 	}
 
 	var hashKeys = make([]string, 8)

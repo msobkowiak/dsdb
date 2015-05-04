@@ -1,11 +1,12 @@
 package main
 
 type Table struct {
-	Name               string
-	HashKey            Key
-	RangeKey           Key
-	ReadCapacityUnits  int64
-	WriteCapacityUnits int64
+	Name                 string
+	HashKey              Key
+	RangeKey             Key
+	GlobalSecondaryIndex SecondaryIndex
+	ReadCapacityUnits    int64
+	WriteCapacityUnits   int64
 }
 
 type Key struct {
@@ -19,6 +20,12 @@ type Attribute struct {
 	Type  string
 	Name  string
 	Value string
+}
+
+type SecondaryIndex struct {
+	Name     string
+	HashKey  Key
+	RangeKey Key
 }
 
 func (t Table) HasRange() bool {

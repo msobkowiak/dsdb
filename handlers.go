@@ -20,15 +20,7 @@ func GetAllItems(w http.ResponseWriter, r *http.Request) {
 	table := vars["table"]
 
 	data, err := RepoGetAllItems(table)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(GetErrorMsg(err, 404))
-	} else {
-		w.WriteHeader(http.StatusFound)
-		json.NewEncoder(w).Encode(data)
-	}
+	writeCollectionResponse(data, err, w)
 }
 
 func GetByHash(w http.ResponseWriter, r *http.Request) {
@@ -36,11 +28,7 @@ func GetByHash(w http.ResponseWriter, r *http.Request) {
 	hash := vars["hash"]
 	table := vars["table"]
 
-	if GetSchema(table).HasRange() {
-		getItemWithRange(table, hash, w)
-	} else {
-		getItem(table, hash, w)
-	}
+	getItemsByHash(table, hash, w)
 }
 
 func GetByHashRange(w http.ResponseWriter, r *http.Request) {
@@ -50,15 +38,7 @@ func GetByHashRange(w http.ResponseWriter, r *http.Request) {
 	table := vars["table"]
 
 	data, err := RepoGetItemByHashRange(table, hash, rangeKey)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(GetErrorMsg(err, 404))
-	} else {
-		w.WriteHeader(http.StatusFound)
-		json.NewEncoder(w).Encode(data)
-	}
+	writeSingleItemResponse(data, err, w)
 }
 
 func GetByRange(w http.ResponseWriter, r *http.Request) {
@@ -67,22 +47,13 @@ func GetByRange(w http.ResponseWriter, r *http.Request) {
 	table := vars["table"]
 
 	data, err := RepoGetItemByRange(table, rangeKey)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(GetErrorMsg(err, 404))
-	} else {
-		w.WriteHeader(http.StatusFound)
-		json.NewEncoder(w).Encode(data)
-	}
+	writeCollectionResponse(data, err, w)
 }
 
 func Search(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	queryParams := r.URL.Query()
 
-	fmt.Println(queryParams)
 	searchType := queryParams["search_type"]
 	index := queryParams["index"]
 	hashKey := queryParams["hash"]
@@ -91,43 +62,31 @@ func Search(w http.ResponseWriter, r *http.Request) {
 
 	table := vars["table"]
 
-	if searchType[0] == "index" && (index[0] == "primary" || index[0] == "secendary") {
-		if rangeOperator == nil {
-			if hashKey != nil {
-				if GetSchema(table).HasRange() {
-					fmt.Println("1")
-					getItemWithRange(table, hashKey[0], w)
+	if searchType[0] == "index" {
+		if index[0] == "primary" {
+			if rangeOperator == nil {
+				if hashKey != nil {
+					getItemsByHash(table, hashKey[0], w)
 				} else {
-					fmt.Println("2")
-					getItem(table, hashKey[0], w)
+					writeErrorResponse("Missing hash value", 404, w)
 				}
-			} else {
-				err := Error{
-					404,
-					"Missing hash value",
-				}
-				w.WriteHeader(http.StatusNotFound)
-				json.NewEncoder(w).Encode(err)
-			}
-		} else if rangeOperator != nil {
-			if hashKey != nil && rangeValue != nil {
+			} else if hashKey != nil && rangeValue != nil {
 				data, err := RepoGetItemsByRangeOp(table, hashKey[0], rangeOperator[0], rangeValue)
-				if err != nil {
-					w.WriteHeader(http.StatusNotFound)
-					json.NewEncoder(w).Encode(GetErrorMsg(err, 404))
+				writeCollectionResponse(data, err, w)
+			} else {
+				writeErrorResponse("Missing primary key value(s)", 404, w)
+			}
+		} else if index[0] == "secondary" {
+			if rangeOperator == nil {
+				if hashKey != nil {
+
 				} else {
-					w.WriteHeader(http.StatusFound)
-					json.NewEncoder(w).Encode(data)
+					writeErrorResponse("Missing hash value", 404, w)
 				}
 			}
+		} else {
+			writeErrorResponse("Invalid search parameters", 404, w)
 		}
-	} else {
-		err := Error{
-			404,
-			"Invalid search parameters",
-		}
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(err)
 	}
 }
 
@@ -137,12 +96,7 @@ func DeleteByHash(w http.ResponseWriter, r *http.Request) {
 	table := vars["table"]
 
 	ok, err := RepoDeleteItem(table, hash)
-	if ok {
-		w.WriteHeader(http.StatusNoContent)
-	} else {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(err)
-	}
+	writeDeleteResponse(ok, err, w)
 }
 
 func DeleteByHashRange(w http.ResponseWriter, r *http.Request) {
@@ -152,12 +106,7 @@ func DeleteByHashRange(w http.ResponseWriter, r *http.Request) {
 	table := vars["table"]
 
 	ok, err := RepoDeleteItemWithRange(table, hashKey, rangeKey)
-	if ok {
-		w.WriteHeader(http.StatusNoContent)
-	} else {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(err)
-	}
+	writeDeleteResponse(ok, err, w)
 }
 
 func AddItem(w http.ResponseWriter, r *http.Request) {
@@ -244,10 +193,18 @@ func AddItemHashRange(w http.ResponseWriter, r *http.Request) {
 	}
 }*/
 
-func getItem(table, hash string, w http.ResponseWriter) {
-	data, err := RepoGetItemByHash(table, hash)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+func getItemsByHash(table, hash string, w http.ResponseWriter) {
+	if GetSchema(table).HasRange() {
+		data, err := RepoGetItemByRange(table, hash)
+		writeCollectionResponse(data, err, w)
+	} else {
+		data, err := RepoGetItemByHash(table, hash)
+		writeSingleItemResponse(data, err, w)
+	}
+}
 
+func writeSingleItemResponse(data map[string]string, err error, w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(GetErrorMsg(err, 404))
@@ -257,10 +214,8 @@ func getItem(table, hash string, w http.ResponseWriter) {
 	}
 }
 
-func getItemWithRange(table, hash string, w http.ResponseWriter) {
-	data, err := RepoGetItemByRange(table, hash)
+func writeCollectionResponse(data []map[string]string, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(GetErrorMsg(err, 404))
@@ -268,4 +223,22 @@ func getItemWithRange(table, hash string, w http.ResponseWriter) {
 		w.WriteHeader(http.StatusFound)
 		json.NewEncoder(w).Encode(data)
 	}
+}
+
+func writeDeleteResponse(ok bool, err error, w http.ResponseWriter) {
+	if ok {
+		w.WriteHeader(http.StatusNoContent)
+	} else {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err)
+	}
+}
+
+func writeErrorResponse(message string, statusCode int, w http.ResponseWriter) {
+	err := Error{
+		statusCode,
+		message,
+	}
+	w.WriteHeader(http.StatusNotFound)
+	json.NewEncoder(w).Encode(err)
 }
