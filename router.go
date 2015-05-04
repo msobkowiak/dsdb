@@ -19,6 +19,16 @@ func NewRouter() *mux.Router {
 			Name(route.Name).
 			Handler(handler)
 
+		/*if route.Queries != nil {
+			addQueryStringMatch(router, route.Queries)
+		}*/
+
 	}
 	return router
 }
+
+/*func addQueryStringMatch(router *mux.Router, queries Queries) {
+	for i := range queries {
+		router.Queries(queries[i].Key, queries[i].Value)
+	}
+}*/

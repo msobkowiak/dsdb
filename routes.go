@@ -19,6 +19,12 @@ var routes = Routes{
 		Index,
 	},
 	Route{
+		"Search",
+		"GET",
+		"/search/{table}",
+		Search,
+	},
+	Route{
 		"GetAll",
 		"GET",
 		"/{table}",
@@ -36,7 +42,6 @@ var routes = Routes{
 		"/{table}/{hash}/{range}",
 		GetByHashRange,
 	},
-	// search route goes here
 	Route{
 		"DeleteItem",
 		"DELETE",
@@ -61,10 +66,4 @@ var routes = Routes{
 		"/{table}/{hash}/{range}",
 		AddItemHashRange,
 	},
-	/*Route{
-		"AddItem",
-		"POST",
-		"/{table}",
-		AddItem,
-	},*/
 }

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
+	//"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -37,7 +37,7 @@ func GetByHash(w http.ResponseWriter, r *http.Request) {
 	table := vars["table"]
 
 	if GetSchema(table).HasRange() {
-		getIremWithRamge(table, hash, w)
+		getItemWithRange(table, hash, w)
 	} else {
 		getItem(table, hash, w)
 	}
@@ -65,7 +65,6 @@ func GetByRange(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	rangeKey := vars["range"]
 	table := vars["table"]
-	log.Println(vars)
 
 	data, err := RepoGetItemByRange(table, rangeKey)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -76,6 +75,59 @@ func GetByRange(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.WriteHeader(http.StatusFound)
 		json.NewEncoder(w).Encode(data)
+	}
+}
+
+func Search(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	queryParams := r.URL.Query()
+
+	fmt.Println(queryParams)
+	searchType := queryParams["search_type"]
+	index := queryParams["index"]
+	hashKey := queryParams["hash"]
+	rangeOperator := queryParams["range_operator"]
+	rangeValue := queryParams["range_value"]
+
+	table := vars["table"]
+
+	if searchType[0] == "index" && (index[0] == "primary" || index[0] == "secendary") {
+		if rangeOperator == nil {
+			if hashKey != nil {
+				if GetSchema(table).HasRange() {
+					fmt.Println("1")
+					getItemWithRange(table, hashKey[0], w)
+				} else {
+					fmt.Println("2")
+					getItem(table, hashKey[0], w)
+				}
+			} else {
+				err := Error{
+					404,
+					"Missing hash value",
+				}
+				w.WriteHeader(http.StatusNotFound)
+				json.NewEncoder(w).Encode(err)
+			}
+		} else if rangeOperator != nil {
+			if hashKey != nil && rangeValue != nil {
+				data, err := RepoGetItemsByRangeOp(table, hashKey[0], rangeOperator[0], rangeValue)
+				if err != nil {
+					w.WriteHeader(http.StatusNotFound)
+					json.NewEncoder(w).Encode(GetErrorMsg(err, 404))
+				} else {
+					w.WriteHeader(http.StatusFound)
+					json.NewEncoder(w).Encode(data)
+				}
+			}
+		}
+	} else {
+		err := Error{
+			404,
+			"Invalid search parameters",
+		}
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(err)
 	}
 }
 
@@ -205,7 +257,7 @@ func getItem(table, hash string, w http.ResponseWriter) {
 	}
 }
 
-func getIremWithRamge(table, hash string, w http.ResponseWriter) {
+func getItemWithRange(table, hash string, w http.ResponseWriter) {
 	data, err := RepoGetItemByRange(table, hash)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 

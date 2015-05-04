@@ -39,7 +39,7 @@ func RepoGetItemByHashRange(tableName, hashKey, rangeKey string) (map[string]str
 
 func RepoGetItemByRange(tableName, hash string) ([]map[string]string, error) {
 	table, _ := GetTable(tableName)
-	atrrComaparations := buildQueryParams(tableName, hash)
+	atrrComaparations := buildQueryHash(tableName, hash)
 
 	items, err := table.Query(atrrComaparations)
 	if err != nil {
@@ -49,7 +49,23 @@ func RepoGetItemByRange(tableName, hash string) ([]map[string]string, error) {
 	return getDataAsArray(items), nil
 }
 
-// RepoSearch to be implemented here
+func RepoGetItemsByRangeOp(tableName, hash, operator string, rangeValue []string) ([]map[string]string, error) {
+	table, _ := GetTable(tableName)
+
+	var atrrComaparations []dynamodb.AttributeComparison
+	if len(rangeValue) == 1 {
+		atrrComaparations = buildQueryRange(tableName, hash, operator, rangeValue[0])
+	} else {
+		atrrComaparations = buildQueryRangeBetween(tableName, hash, operator, rangeValue)
+	}
+
+	items, err := table.Query(atrrComaparations)
+	if err != nil {
+		return nil, err
+	}
+
+	return getDataAsArray(items), nil
+}
 
 func RepoDeleteItem(tableName, hash string) (bool, error) {
 	schema := GetSchema(tableName)
@@ -126,7 +142,74 @@ func getDataAsArray(items []map[string]*dynamodb.Attribute) []map[string]string 
 	return data
 }
 
-func buildQueryParams(tableName, hash string) []dynamodb.AttributeComparison {
+func buildQueryRange(tableName, hash, operator, rangeValue string) []dynamodb.AttributeComparison {
+	schema := GetSchema(tableName)
+
+	var atrrs1 = make([]dynamodb.Attribute, 1)
+	atrrs1[0] = dynamodb.Attribute{
+		Value: hash,
+		Name:  schema.HashKey.Name,
+		Type:  schema.HashKey.AttributeType,
+	}
+	var atrrs2 = make([]dynamodb.Attribute, 1)
+	atrrs2[0] = dynamodb.Attribute{
+		Value: rangeValue,
+		Name:  schema.RangeKey.Name,
+		Type:  schema.RangeKey.AttributeType,
+	}
+
+	var atrrComaparations = make([]dynamodb.AttributeComparison, 2)
+	atrrComaparations[0] = dynamodb.AttributeComparison{
+		AttributeName:      schema.HashKey.Name,
+		ComparisonOperator: "EQ",
+		AttributeValueList: atrrs1,
+	}
+	atrrComaparations[1] = dynamodb.AttributeComparison{
+		AttributeName:      schema.RangeKey.Name,
+		ComparisonOperator: operator,
+		AttributeValueList: atrrs2,
+	}
+
+	return atrrComaparations
+}
+
+func buildQueryRangeBetween(tableName, hash, operator string, rangeValue []string) []dynamodb.AttributeComparison {
+	schema := GetSchema(tableName)
+
+	var atrrs1 = make([]dynamodb.Attribute, 1)
+	atrrs1[0] = dynamodb.Attribute{
+		Value: hash,
+		Name:  schema.HashKey.Name,
+		Type:  schema.HashKey.AttributeType,
+	}
+	var atrrs2 = make([]dynamodb.Attribute, 2)
+	atrrs2[0] = dynamodb.Attribute{
+		Value: rangeValue[0],
+		Name:  schema.RangeKey.Name,
+		Type:  schema.RangeKey.AttributeType,
+	}
+	atrrs2[1] = dynamodb.Attribute{
+		Value: rangeValue[1],
+		Name:  schema.RangeKey.Name,
+		Type:  schema.RangeKey.AttributeType,
+	}
+
+	var atrrComaparations = make([]dynamodb.AttributeComparison, 2)
+	atrrComaparations[0] = dynamodb.AttributeComparison{
+		AttributeName:      schema.HashKey.Name,
+		ComparisonOperator: "EQ",
+		AttributeValueList: atrrs1,
+	}
+	atrrComaparations[1] = dynamodb.AttributeComparison{
+		AttributeName:      schema.RangeKey.Name,
+		ComparisonOperator: operator,
+		AttributeValueList: atrrs2,
+	}
+
+	return atrrComaparations
+}
+
+func buildQueryHash(tableName, hash string) []dynamodb.AttributeComparison {
 	schema := GetSchema(tableName)
 
 	var atrrs = make([]dynamodb.Attribute, 1)
