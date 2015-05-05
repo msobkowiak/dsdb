@@ -36,6 +36,14 @@ func (t Table) HasRange() bool {
 	return false
 }
 
+func (t Table) HasIndexWithRange() bool {
+	if t.GlobalSecondaryIndex.RangeKey.Name != "" {
+		return true
+	}
+
+	return false
+}
+
 func (t Table) GetRangeName() string {
 	return t.HashKey.Name
 }

@@ -37,9 +37,31 @@ func RepoGetItemByHashRange(tableName, hashKey, rangeKey string) (map[string]str
 	return getData(item), nil
 }
 
+func RepoGetItemByIndexHash(tableName, hashKey, rangeKey string) (map[string]string, error) {
+	table, _ := GetTable(tableName)
+	item, err := table.GetItem(&dynamodb.Key{HashKey: hashKey, RangeKey: rangeKey})
+	if err != nil {
+		return nil, err
+	}
+
+	return getData(item), nil
+}
+
 func RepoGetItemByRange(tableName, hash string) ([]map[string]string, error) {
 	table, _ := GetTable(tableName)
 	atrrComaparations := buildQueryHash(tableName, hash)
+
+	items, err := table.Query(atrrComaparations)
+	if err != nil {
+		return nil, err
+	}
+
+	return getDataAsArray(items), nil
+}
+
+func RepoGetItemByIndexRange(tableName, hash string) ([]map[string]string, error) {
+	table, _ := GetTable(tableName)
+	atrrComaparations := buildQueryIndexHash(tableName, hash)
 
 	items, err := table.Query(atrrComaparations)
 	if err != nil {
@@ -222,6 +244,26 @@ func buildQueryHash(tableName, hash string) []dynamodb.AttributeComparison {
 	var atrrComaparations = make([]dynamodb.AttributeComparison, 1)
 	atrrComaparations[0] = dynamodb.AttributeComparison{
 		AttributeName:      schema.HashKey.Name,
+		ComparisonOperator: "EQ",
+		AttributeValueList: atrrs,
+	}
+
+	return atrrComaparations
+}
+
+func buildQueryIndexHash(tableName, hash string) []dynamodb.AttributeComparison {
+	schema := GetSchema(tableName)
+
+	var atrrs = make([]dynamodb.Attribute, 1)
+	atrrs[0] = dynamodb.Attribute{
+		Value: hash,
+		Name:  schema.GlobalSecondaryIndex.HashKey.Name,
+		Type:  schema.GlobalSecondaryIndex.HashKey.AttributeType,
+	}
+
+	var atrrComaparations = make([]dynamodb.AttributeComparison, 1)
+	atrrComaparations[0] = dynamodb.AttributeComparison{
+		AttributeName:      schema.GlobalSecondaryIndex.HashKey.Name,
 		ComparisonOperator: "EQ",
 		AttributeValueList: atrrs,
 	}
