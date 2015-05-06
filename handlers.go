@@ -63,7 +63,9 @@ func Search(w http.ResponseWriter, r *http.Request) {
 	table := vars["table"]
 
 	if searchType[0] == "index" {
+		fmt.Println("index")
 		if index[0] == "primary" {
+			fmt.Println("primay")
 			if rangeOperator == nil {
 				if hashKey != nil {
 					getItemsByHash(table, hashKey[0], w)
@@ -77,15 +79,17 @@ func Search(w http.ResponseWriter, r *http.Request) {
 				writeErrorResponse("Missing primary key value(s)", 404, w)
 			}
 		} else if index[0] == "secondary" {
+			fmt.Println("secondary")
 			if rangeOperator == nil {
 				if hashKey != nil {
+					fmt.Println("no range")
 					getItemsByIndexHash(table, hashKey[0], w)
 				} else {
 					writeErrorResponse("Missing hash value", 404, w)
 				}
 			} else if hashKey != nil && rangeValue != nil {
-				//data, err := RepoGetItemsByIndexRangeOp(table, hashKey[0], rangeOperator[0], rangeValue)
-				//writeCollectionResponse(data, err, w)
+				data, err := RepoGetItemsByIndexRangeOp(table, hashKey[0], rangeOperator[0], rangeValue)
+				writeCollectionResponse(data, err, w)
 			} else {
 				writeErrorResponse("Missing primary key value(s)", 404, w)
 			}
@@ -213,8 +217,9 @@ func getItemsByIndexHash(table, hash string, w http.ResponseWriter) {
 		data, err := RepoGetItemByIndexRange(table, hash)
 		writeCollectionResponse(data, err, w)
 	} else {
-		data, err := RepoGetItemByHash(table, hash)
-		writeSingleItemResponse(data, err, w)
+		data, err := RepoGetItemByIndexHash(table, hash)
+		writeCollectionResponse(data, err, w)
+		//writeSingleItemResponse(data, err, w)
 	}
 }
 

@@ -24,6 +24,10 @@ func getUsersSchema() Table {
 	t.HashKey.KeyType = "HASH"
 	t.ReadCapacityUnits = 10
 	t.WriteCapacityUnits = 10
+	t.GlobalSecondaryIndex.Name = "email"
+	t.GlobalSecondaryIndex.HashKey.Name = "email"
+	t.GlobalSecondaryIndex.HashKey.AttributeType = "S"
+	t.GlobalSecondaryIndex.HashKey.KeyType = "HASH"
 
 	return t
 }
@@ -39,11 +43,11 @@ func getGameScoreSchema() Table {
 	t.RangeKey.KeyType = "RANGE"
 	t.ReadCapacityUnits = 10
 	t.WriteCapacityUnits = 10
-	t.GlobalSecondaryIndex.Name = "wins"
-	t.GlobalSecondaryIndex.HashKey.Name = "game_title"
-	t.GlobalSecondaryIndex.HashKey.AttributeType = "S"
+	t.GlobalSecondaryIndex.Name = "wins_losts"
+	t.GlobalSecondaryIndex.HashKey.Name = "wins"
+	t.GlobalSecondaryIndex.HashKey.AttributeType = "N"
 	t.GlobalSecondaryIndex.HashKey.KeyType = "HASH"
-	t.GlobalSecondaryIndex.RangeKey.Name = "wins"
+	t.GlobalSecondaryIndex.RangeKey.Name = "losts"
 	t.GlobalSecondaryIndex.RangeKey.AttributeType = "N"
 	t.GlobalSecondaryIndex.RangeKey.KeyType = "RANGE"
 	return t
@@ -91,7 +95,7 @@ func LoadUsersData() [][]dynamodb.Attribute {
 		*dynamodb.NewStringAttribute("first_name", "Joao"),
 		*dynamodb.NewStringAttribute("last_name", "Silva"),
 		*dynamodb.NewStringAttribute("email", "joao@gmail.com"),
-		*dynamodb.NewStringAttribute("counrty", "Portugal"),
+		*dynamodb.NewStringAttribute("country", "Portugal"),
 	}
 	data[7] = []dynamodb.Attribute{
 		*dynamodb.NewStringAttribute("first_name", "Mat"),

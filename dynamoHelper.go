@@ -31,16 +31,17 @@ func getTableDescriptionHash(t Table) dynamodb.TableDescriptionT {
 		TableName: t.Name,
 		AttributeDefinitions: []dynamodb.AttributeDefinitionT{
 			dynamodb.AttributeDefinitionT{t.HashKey.Name, t.HashKey.AttributeType},
+			dynamodb.AttributeDefinitionT{t.GlobalSecondaryIndex.HashKey.Name, t.GlobalSecondaryIndex.HashKey.AttributeType},
 		},
 		KeySchema: []dynamodb.KeySchemaT{
 			dynamodb.KeySchemaT{t.HashKey.Name, t.HashKey.KeyType},
 		},
-		/*GlobalSecondaryIndexes: []dynamodb.GlobalSecondaryIndexT{
+		GlobalSecondaryIndexes: []dynamodb.GlobalSecondaryIndexT{
 			dynamodb.GlobalSecondaryIndexT{
 				IndexName: t.GlobalSecondaryIndex.Name,
 				KeySchema: []dynamodb.KeySchemaT{
 					dynamodb.KeySchemaT{t.GlobalSecondaryIndex.HashKey.Name, "HASH"},
-					dynamodb.KeySchemaT{t.GlobalSecondaryIndex.HashKey.Name, "RANGE"},
+					//dynamodb.KeySchemaT{t.GlobalSecondaryIndex.HashKey.Name, "RANGE"},
 				},
 				Projection: dynamodb.ProjectionT{"ALL"},
 				ProvisionedThroughput: dynamodb.ProvisionedThroughputT{
@@ -48,7 +49,7 @@ func getTableDescriptionHash(t Table) dynamodb.TableDescriptionT {
 					WriteCapacityUnits: 1,
 				},
 			},
-		},*/
+		},
 		ProvisionedThroughput: dynamodb.ProvisionedThroughputT{
 			ReadCapacityUnits:  t.ReadCapacityUnits,
 			WriteCapacityUnits: t.WriteCapacityUnits,
