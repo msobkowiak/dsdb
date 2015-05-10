@@ -1,5 +1,9 @@
 package main
 
+import (
+	"errors"
+)
+
 type TableDescription struct {
 	Name             string
 	Attributes       []AttributeDefinition
@@ -58,4 +62,14 @@ func (t TableDescription) GetTypeOfAttribute(name string) string {
 	}
 
 	return ""
+}
+
+func (t TableDescription) GetIndexByName(name string) (SecondaryIndexDefinition, error) {
+	for i := range t.SecondaryIndexes {
+		if t.SecondaryIndexes[i].Name == name {
+			return t.SecondaryIndexes[i], nil
+		}
+	}
+
+	return SecondaryIndexDefinition{}, errors.New("Index not found")
 }

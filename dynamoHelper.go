@@ -29,8 +29,8 @@ func ConvertToDynamo(t TableDescription) dynamodb.TableDescriptionT {
 	return table
 }
 
-func GetTable(tableName string) dynamodb.Table {
-	schema := GetSchema(tableName)
+func GetDynamoTable(tableName string) dynamodb.Table {
+	schema := GetTableDescription(tableName)
 
 	auth := schema.Authentication.Dynamo
 	db := Auth(auth.Region, auth.AccessKey, auth.SecretKey)

@@ -55,8 +55,8 @@ var table_suite = &TableSuite{
 			Attributes: []AttributeDefinition{
 				AttributeDefinition{"user_id", "N", true},
 				AttributeDefinition{"game_title", "S", true},
-				AttributeDefinition{"wins", "S", true},
-				AttributeDefinition{"losts", "S", true},
+				AttributeDefinition{"wins", "N", true},
+				AttributeDefinition{"losts", "N", true},
 			},
 			PrimaryKey: PrimaryKeyDefinition{
 				Type:  "RANGE",
@@ -144,7 +144,7 @@ func (s *TableSuite) TestConvertToDynamo(c *C) {
 	c.Check(obtained, DeepEquals, expected)
 }
 
-func (s *TableSuite) TestGetTable(c *C) {
+func (s *TableSuite) TestGetDynamoTable(c *C) {
 	expected := dynamodb.Table{
 		Server: &dynamodb.Server{
 			Auth:   aws.Auth{AccessKey: "access", SecretKey: "secret"},
@@ -158,7 +158,7 @@ func (s *TableSuite) TestGetTable(c *C) {
 			},
 		},
 	}
-	obtained := GetTable("users")
+	obtained := GetDynamoTable("users")
 
 	c.Check(obtained, DeepEquals, expected)
 }

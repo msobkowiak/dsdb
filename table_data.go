@@ -35,8 +35,8 @@ var tables = map[string]TableDescription{
 		Attributes: []AttributeDefinition{
 			AttributeDefinition{"user_id", "N", true},
 			AttributeDefinition{"game_title", "S", true},
-			AttributeDefinition{"wins", "S", true},
-			AttributeDefinition{"losts", "S", true},
+			AttributeDefinition{"wins", "N", true},
+			AttributeDefinition{"losts", "N", true},
 		},
 		PrimaryKey: PrimaryKeyDefinition{
 			Type:  "RANGE",
@@ -61,7 +61,7 @@ var tables = map[string]TableDescription{
 	},
 }
 
-func GetSchema(tableName string) TableDescription {
+func GetTableDescription(tableName string) TableDescription {
 	return tables[tableName]
 }
 
