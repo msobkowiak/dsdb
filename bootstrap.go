@@ -31,7 +31,7 @@ func deleteAllTables(db dynamodb.Server) {
 
 func createUsersTable(db dynamodb.Server) {
 	// create a new table
-	tab, _ := GetTableDescription(GetSchema("users"))
+	tab := ConvertToDynamo(GetSchema("users"))
 	pk, _ := tab.BuildPrimaryKey()
 	table := db.NewTable(tab.TableName, pk)
 	_, err := db.CreateTable(tab)
@@ -52,7 +52,7 @@ func createUsersTable(db dynamodb.Server) {
 
 func createGameScoreTable(db dynamodb.Server) {
 	// create a new table
-	tab, _ := GetTableDescription(GetSchema("game_scores"))
+	tab := ConvertToDynamo(GetSchema("game_scores"))
 	pk, _ := tab.BuildPrimaryKey()
 	table := db.NewTable(tab.TableName, pk)
 	_, err := db.CreateTable(tab)

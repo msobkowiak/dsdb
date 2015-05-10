@@ -4,19 +4,69 @@ import (
 	"github.com/goamz/goamz/dynamodb"
 )
 
-func GetSchema(tableName string) Table {
+func getUsersSchema() TableDescription {
+	var table = TableDescription{
+		Name: "users",
+		Attributes: []AttributeDefinition{
+			AttributeDefinition{"id", "N", true},
+			AttributeDefinition{"email", "S", true},
+		},
+		PrimaryKey: PrimaryKeyDefinition{
+			Type: "HASH",
+			Hash: "id",
+		},
+		SecondaryIndexes: []SecondaryIndexDefinition{
+			SecondaryIndexDefinition{
+				Name: "email",
+				Type: "HASH",
+				Hash: "email",
+			},
+		},
+	}
+
+	return table
+}
+
+func getGameScoreSchema() TableDescription {
+	var table = TableDescription{
+		Name: "game_scores",
+		Attributes: []AttributeDefinition{
+			AttributeDefinition{"user_id", "N", true},
+			AttributeDefinition{"game_title", "S", true},
+			AttributeDefinition{"wins", "S", true},
+			AttributeDefinition{"losts", "S", true},
+		},
+		PrimaryKey: PrimaryKeyDefinition{
+			Type:  "RANGE",
+			Hash:  "game_title",
+			Range: "user_id",
+		},
+		SecondaryIndexes: []SecondaryIndexDefinition{
+			SecondaryIndexDefinition{
+				Name:  "wins_losts",
+				Type:  "RANGE",
+				Hash:  "wins",
+				Range: "losts",
+			},
+		},
+	}
+
+	return table
+}
+
+func GetSchema(tableName string) TableDescription {
 	if tableName == "users" {
 		return getUsersSchema()
 	} else if tableName == "game_scores" {
 		return getGameScoreSchema()
 	}
 
-	return Table{
+	return TableDescription{
 		Name: tableName,
 	}
 }
 
-func getUsersSchema() Table {
+/*func getUsersSchema() Table {
 	var t Table
 	t.Name = "users"
 	t.HashKey.Name = "id"
@@ -30,9 +80,9 @@ func getUsersSchema() Table {
 	t.GlobalSecondaryIndex.HashKey.KeyType = "HASH"
 
 	return t
-}
+}*/
 
-func getGameScoreSchema() Table {
+/*func getGameScoreSchema() Table {
 	var t Table
 	t.Name = "game_scores"
 	t.HashKey.Name = "game_title"
@@ -51,7 +101,7 @@ func getGameScoreSchema() Table {
 	t.GlobalSecondaryIndex.RangeKey.AttributeType = "N"
 	t.GlobalSecondaryIndex.RangeKey.KeyType = "RANGE"
 	return t
-}
+}*/
 
 func LoadUsersData() [][]dynamodb.Attribute {
 	var data = make([][]dynamodb.Attribute, 8)

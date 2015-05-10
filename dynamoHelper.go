@@ -1,6 +1,7 @@
 package main
 
 import (
+	//"fmt"
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/dynamodb"
 )
@@ -18,84 +19,98 @@ func Auth(region, accessKey, secretKey string) dynamodb.Server {
 		Region: dynamodbRegion,
 	}
 }
-func GetTableDescription(t Table) (dynamodb.TableDescriptionT, bool) {
 
-	if t.HasRange() {
-		return getTableDescriptionHashRange(t), false
-	}
-	return getTableDescriptionHash(t), true
-}
+func ConvertToDynamo(t TableDescription) dynamodb.TableDescriptionT {
 
-func getTableDescriptionHash(t Table) dynamodb.TableDescriptionT {
-	return dynamodb.TableDescriptionT{
+	var table = dynamodb.TableDescriptionT{
 		TableName: t.Name,
-		AttributeDefinitions: []dynamodb.AttributeDefinitionT{
-			dynamodb.AttributeDefinitionT{t.HashKey.Name, t.HashKey.AttributeType},
-			dynamodb.AttributeDefinitionT{t.GlobalSecondaryIndex.HashKey.Name, t.GlobalSecondaryIndex.HashKey.AttributeType},
-		},
-		KeySchema: []dynamodb.KeySchemaT{
-			dynamodb.KeySchemaT{t.HashKey.Name, t.HashKey.KeyType},
-		},
-		GlobalSecondaryIndexes: []dynamodb.GlobalSecondaryIndexT{
-			dynamodb.GlobalSecondaryIndexT{
-				IndexName: t.GlobalSecondaryIndex.Name,
-				KeySchema: []dynamodb.KeySchemaT{
-					dynamodb.KeySchemaT{t.GlobalSecondaryIndex.HashKey.Name, "HASH"},
-					//dynamodb.KeySchemaT{t.GlobalSecondaryIndex.HashKey.Name, "RANGE"},
-				},
-				Projection: dynamodb.ProjectionT{"ALL"},
-				ProvisionedThroughput: dynamodb.ProvisionedThroughputT{
-					ReadCapacityUnits:  1,
-					WriteCapacityUnits: 1,
-				},
-			},
-		},
-		ProvisionedThroughput: dynamodb.ProvisionedThroughputT{
-			ReadCapacityUnits:  t.ReadCapacityUnits,
-			WriteCapacityUnits: t.WriteCapacityUnits,
-		},
+	}
+
+	addAttrubuteDefinition(&table, t.Attributes)
+	addPrimaryKey(&table, t.PrimaryKey, t.Attributes)
+	addSecondaryIndexes(&table, t.SecondaryIndexes, t.Attributes)
+	addThroughput(&table)
+
+	return table
+}
+
+func addHash(hashName string, atrrs []AttributeDefinition, keySchema []dynamodb.KeySchemaT) {
+	if existsInAttributes(atrrs, hashName) {
+		keySchema[0] = dynamodb.KeySchemaT{hashName, "HASH"}
 	}
 }
 
-func getTableDescriptionHashRange(t Table) dynamodb.TableDescriptionT {
-	return dynamodb.TableDescriptionT{
-		TableName: t.Name,
-		AttributeDefinitions: []dynamodb.AttributeDefinitionT{
-			dynamodb.AttributeDefinitionT{t.HashKey.Name, t.HashKey.AttributeType},
-			dynamodb.AttributeDefinitionT{t.RangeKey.Name, t.RangeKey.AttributeType},
-			dynamodb.AttributeDefinitionT{t.GlobalSecondaryIndex.HashKey.Name, t.GlobalSecondaryIndex.HashKey.AttributeType},
-			dynamodb.AttributeDefinitionT{t.GlobalSecondaryIndex.RangeKey.Name, t.GlobalSecondaryIndex.RangeKey.AttributeType},
-		},
-		KeySchema: []dynamodb.KeySchemaT{
-			dynamodb.KeySchemaT{t.HashKey.Name, t.HashKey.KeyType},
-			dynamodb.KeySchemaT{t.RangeKey.Name, t.RangeKey.KeyType},
-		},
-		GlobalSecondaryIndexes: []dynamodb.GlobalSecondaryIndexT{
-			dynamodb.GlobalSecondaryIndexT{
-				IndexName: t.GlobalSecondaryIndex.Name,
-				KeySchema: []dynamodb.KeySchemaT{
-					dynamodb.KeySchemaT{t.GlobalSecondaryIndex.HashKey.Name, t.GlobalSecondaryIndex.HashKey.KeyType},
-					dynamodb.KeySchemaT{t.GlobalSecondaryIndex.RangeKey.Name, t.GlobalSecondaryIndex.RangeKey.KeyType},
-				},
-				Projection: dynamodb.ProjectionT{"ALL"},
-				ProvisionedThroughput: dynamodb.ProvisionedThroughputT{
-					ReadCapacityUnits:  1,
-					WriteCapacityUnits: 1,
-				},
-			},
-		},
-		ProvisionedThroughput: dynamodb.ProvisionedThroughputT{
-			ReadCapacityUnits:  t.ReadCapacityUnits,
-			WriteCapacityUnits: t.WriteCapacityUnits,
-		},
+func addRange(rangeName string, atrrs []AttributeDefinition, keySchema []dynamodb.KeySchemaT) {
+	if existsInAttributes(atrrs, rangeName) {
+		keySchema[1] = dynamodb.KeySchemaT{rangeName, "RANGE"}
 	}
 }
 
-func GetTable(tableName string) (dynamodb.Table, bool) {
+func existsInAttributes(attrs []AttributeDefinition, keyName string) bool {
+	for i := range attrs {
+		if attrs[i].Name == keyName {
+			return true
+		}
+	}
+
+	return false
+}
+
+func addAttrubuteDefinition(table *dynamodb.TableDescriptionT, attrs []AttributeDefinition) {
+	table.AttributeDefinitions = make([]dynamodb.AttributeDefinitionT, len(attrs))
+	for i := range attrs {
+		table.AttributeDefinitions[i] = dynamodb.AttributeDefinitionT{attrs[i].Name, attrs[i].Type}
+	}
+}
+
+func addPrimaryKey(table *dynamodb.TableDescriptionT, key PrimaryKeyDefinition, attrs []AttributeDefinition) {
+	if key.Type == "HASH" {
+		table.KeySchema = make([]dynamodb.KeySchemaT, 1)
+		addHash(key.Hash, attrs, table.KeySchema)
+	} else if key.Type == "RANGE" {
+		table.KeySchema = make([]dynamodb.KeySchemaT, 2)
+		addHash(key.Hash, attrs, table.KeySchema)
+		addRange(key.Range, attrs, table.KeySchema)
+	}
+}
+
+func addSecondaryIndexes(table *dynamodb.TableDescriptionT, indexes []SecondaryIndexDefinition, attrs []AttributeDefinition) {
+	table.GlobalSecondaryIndexes = make([]dynamodb.GlobalSecondaryIndexT, len(indexes))
+
+	for i := range indexes {
+
+		table.GlobalSecondaryIndexes[i] = dynamodb.GlobalSecondaryIndexT{
+			IndexName: indexes[i].Name,
+		}
+
+		if indexes[i].Type == "HASH" {
+			table.GlobalSecondaryIndexes[i].KeySchema = make([]dynamodb.KeySchemaT, 1)
+			addHash(indexes[i].Hash, attrs, table.GlobalSecondaryIndexes[i].KeySchema)
+		} else if indexes[i].Type == "RANGE" {
+			table.GlobalSecondaryIndexes[i].KeySchema = make([]dynamodb.KeySchemaT, 2)
+			addHash(indexes[i].Hash, attrs, table.GlobalSecondaryIndexes[i].KeySchema)
+			addRange(indexes[i].Range, attrs, table.GlobalSecondaryIndexes[i].KeySchema)
+		}
+		table.GlobalSecondaryIndexes[i].Projection = dynamodb.ProjectionT{"ALL"}
+		table.GlobalSecondaryIndexes[i].ProvisionedThroughput = dynamodb.ProvisionedThroughputT{
+			ReadCapacityUnits:  1,
+			WriteCapacityUnits: 1,
+		}
+	}
+}
+
+func addThroughput(table *dynamodb.TableDescriptionT) {
+	table.ProvisionedThroughput = dynamodb.ProvisionedThroughputT{
+		ReadCapacityUnits:  10,
+		WriteCapacityUnits: 10,
+	}
+}
+
+func GetTable(tableName string) dynamodb.Table {
 	db := Auth("http://127.0.0.1:4567", "key", "secret")
 
-	tableDescription, hasRange := GetTableDescription(GetSchema(tableName))
+	tableDescription := ConvertToDynamo(GetSchema(tableName))
 	pk, _ := tableDescription.BuildPrimaryKey()
 
-	return *db.NewTable(tableDescription.TableName, pk), hasRange
+	return *db.NewTable(tableDescription.TableName, pk)
 }

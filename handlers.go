@@ -78,23 +78,23 @@ func Search(w http.ResponseWriter, r *http.Request) {
 			} else {
 				writeErrorResponse("Missing primary key value(s)", 404, w)
 			}
-		} else if index[0] == "secondary" {
-			fmt.Println("secondary")
-			if rangeOperator == nil {
-				if hashKey != nil {
-					fmt.Println("no range")
-					getItemsByIndexHash(table, hashKey[0], w)
+			/*} else if index[0] == "secondary" {
+				fmt.Println("secondary")
+				if rangeOperator == nil {
+					if hashKey != nil {
+						fmt.Println("no range")
+						getItemsByIndexHash(table, hashKey[0], w)
+					} else {
+						writeErrorResponse("Missing hash value", 404, w)
+					}
+				} else if hashKey != nil && rangeValue != nil {
+					data, err := RepoGetItemsByIndexRangeOp(table, hashKey[0], rangeOperator[0], rangeValue)
+					writeCollectionResponse(data, err, w)
 				} else {
-					writeErrorResponse("Missing hash value", 404, w)
+					writeErrorResponse("Missing primary key value(s)", 404, w)
 				}
-			} else if hashKey != nil && rangeValue != nil {
-				data, err := RepoGetItemsByIndexRangeOp(table, hashKey[0], rangeOperator[0], rangeValue)
-				writeCollectionResponse(data, err, w)
 			} else {
-				writeErrorResponse("Missing primary key value(s)", 404, w)
-			}
-		} else {
-			writeErrorResponse("Invalid search parameters", 404, w)
+				writeErrorResponse("Invalid search parameters", 404, w)*/
 		}
 	}
 }
@@ -212,8 +212,8 @@ func getItemsByHash(table, hash string, w http.ResponseWriter) {
 	}
 }
 
-func getItemsByIndexHash(table, hash string, w http.ResponseWriter) {
-	if GetSchema(table).HasIndexWithRange() {
+/*func getItemsByIndexHash(table, hash string, w http.ResponseWriter) {
+	if GetSchema(table).HasIndexWRange() {
 		data, err := RepoGetItemByIndexRange(table, hash)
 		writeCollectionResponse(data, err, w)
 	} else {
@@ -221,7 +221,7 @@ func getItemsByIndexHash(table, hash string, w http.ResponseWriter) {
 		writeCollectionResponse(data, err, w)
 		//writeSingleItemResponse(data, err, w)
 	}
-}
+}*/
 
 func writeSingleItemResponse(data map[string]string, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
