@@ -66,43 +66,6 @@ func GetSchema(tableName string) TableDescription {
 	}
 }
 
-/*func getUsersSchema() Table {
-	var t Table
-	t.Name = "users"
-	t.HashKey.Name = "id"
-	t.HashKey.AttributeType = "N"
-	t.HashKey.KeyType = "HASH"
-	t.ReadCapacityUnits = 10
-	t.WriteCapacityUnits = 10
-	t.GlobalSecondaryIndex.Name = "email"
-	t.GlobalSecondaryIndex.HashKey.Name = "email"
-	t.GlobalSecondaryIndex.HashKey.AttributeType = "S"
-	t.GlobalSecondaryIndex.HashKey.KeyType = "HASH"
-
-	return t
-}*/
-
-/*func getGameScoreSchema() Table {
-	var t Table
-	t.Name = "game_scores"
-	t.HashKey.Name = "game_title"
-	t.HashKey.AttributeType = "S"
-	t.HashKey.KeyType = "HASH"
-	t.RangeKey.Name = "user_id"
-	t.RangeKey.AttributeType = "N"
-	t.RangeKey.KeyType = "RANGE"
-	t.ReadCapacityUnits = 10
-	t.WriteCapacityUnits = 10
-	t.GlobalSecondaryIndex.Name = "wins_losts"
-	t.GlobalSecondaryIndex.HashKey.Name = "wins"
-	t.GlobalSecondaryIndex.HashKey.AttributeType = "N"
-	t.GlobalSecondaryIndex.HashKey.KeyType = "HASH"
-	t.GlobalSecondaryIndex.RangeKey.Name = "losts"
-	t.GlobalSecondaryIndex.RangeKey.AttributeType = "N"
-	t.GlobalSecondaryIndex.RangeKey.KeyType = "RANGE"
-	return t
-}*/
-
 func LoadUsersData() [][]dynamodb.Attribute {
 	var data = make([][]dynamodb.Attribute, 8)
 	data[0] = []dynamodb.Attribute{
