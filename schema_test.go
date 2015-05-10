@@ -1,16 +1,15 @@
 package main
 
 import (
-//"testing"
-
-//. "gopkg.in/check.v1"
+	. "gopkg.in/check.v1"
 )
 
-/*func Test(t *testing.T) { TestingT(t) }
+func (s *TableSuite) TestHasRange(c *C) {
+	c.Check(table_suite.Tables["users"].HasRange(), Equals, false)
+	c.Check(table_suite.Tables["game_scores"].HasRange(), Equals, true)
+}
 
-type MySuite struct{}
-
-var _ = Suite(&MySuite{})
-
-func SetUpSuite(c *C) {
-}*/
+func (s *TableSuite) TestGetTypeOfAttribute(c *C) {
+	c.Check(table_suite.Tables["users"].GetTypeOfAttribute("id"), Equals, "N")
+	c.Check(table_suite.Tables["users"].GetTypeOfAttribute("email"), Equals, "S")
+}

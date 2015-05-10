@@ -1,14 +1,9 @@
 package main
 
 import (
-	//"fmt"
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/dynamodb"
 )
-
-// "http://127.0.0.1:4567"
-// "key"
-// "secret"
 
 func Auth(region, accessKey, secretKey string) dynamodb.Server {
 	dynamodbRegion := aws.Region{DynamoDBEndpoint: region}
@@ -32,6 +27,18 @@ func ConvertToDynamo(t TableDescription) dynamodb.TableDescriptionT {
 	addThroughput(&table)
 
 	return table
+}
+
+func GetTable(tableName string) dynamodb.Table {
+	schema := GetSchema(tableName)
+
+	auth := schema.Authentication.Dynamo
+	db := Auth(auth.Region, auth.AccessKey, auth.SecretKey)
+
+	tableDescription := ConvertToDynamo(schema)
+	pk, _ := tableDescription.BuildPrimaryKey()
+
+	return *db.NewTable(tableDescription.TableName, pk)
 }
 
 func addHash(hashName string, atrrs []AttributeDefinition, keySchema []dynamodb.KeySchemaT) {
@@ -104,13 +111,4 @@ func addThroughput(table *dynamodb.TableDescriptionT) {
 		ReadCapacityUnits:  10,
 		WriteCapacityUnits: 10,
 	}
-}
-
-func GetTable(tableName string) dynamodb.Table {
-	db := Auth("http://127.0.0.1:4567", "key", "secret")
-
-	tableDescription := ConvertToDynamo(GetSchema(tableName))
-	pk, _ := tableDescription.BuildPrimaryKey()
-
-	return *db.NewTable(tableDescription.TableName, pk)
 }

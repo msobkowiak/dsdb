@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/dynamodb"
-	"reflect"
 	"testing"
 
 	. "gopkg.in/check.v1"
@@ -11,14 +10,81 @@ import (
 
 func Test(t *testing.T) { TestingT(t) }
 
-type MySuite struct{}
-
-var _ = Suite(&MySuite{})
-
-func SetUpSuite(c *C) {
+type TableSuite struct {
+	Tables map[string]TableDescription
 }
 
-func (s *MySuite) TestAuth(c *C) {
+func (s *TableSuite) SetUpSuite(c *C) {
+}
+
+var table_suite = &TableSuite{
+	Tables: map[string]TableDescription{
+		"users": TableDescription{
+			Name: "users",
+			Attributes: []AttributeDefinition{
+				AttributeDefinition{"id", "N", true},
+				AttributeDefinition{"email", "S", true},
+				AttributeDefinition{"country", "S", true},
+			},
+			PrimaryKey: PrimaryKeyDefinition{
+				Type: "HASH",
+				Hash: "id",
+			},
+			SecondaryIndexes: []SecondaryIndexDefinition{
+				SecondaryIndexDefinition{
+					Name: "email",
+					Type: "HASH",
+					Hash: "email",
+				},
+				SecondaryIndexDefinition{
+					Name: "country",
+					Type: "HASH",
+					Hash: "country",
+				},
+			},
+			Authentication: Authentication{
+				DynamoAuth{
+					Region:    "http://127.0.0.1:4567",
+					AccessKey: "access",
+					SecretKey: "secret",
+				},
+			},
+		},
+		"game_scores": TableDescription{
+			Name: "game_scores",
+			Attributes: []AttributeDefinition{
+				AttributeDefinition{"user_id", "N", true},
+				AttributeDefinition{"game_title", "S", true},
+				AttributeDefinition{"wins", "S", true},
+				AttributeDefinition{"losts", "S", true},
+			},
+			PrimaryKey: PrimaryKeyDefinition{
+				Type:  "RANGE",
+				Hash:  "game_title",
+				Range: "user_id",
+			},
+			SecondaryIndexes: []SecondaryIndexDefinition{
+				SecondaryIndexDefinition{
+					Name:  "wins_losts",
+					Type:  "RANGE",
+					Hash:  "wins",
+					Range: "losts",
+				},
+			},
+			Authentication: Authentication{
+				DynamoAuth{
+					Region:    "http://127.0.0.1:4567",
+					AccessKey: "access",
+					SecretKey: "secret",
+				},
+			},
+		},
+	},
+}
+
+var _ = Suite(table_suite)
+
+func (s *TableSuite) TestAuth(c *C) {
 	region := "http://127.0.0.1:4567"
 	accessKey := "key"
 	secretKey := "secret"
@@ -32,32 +98,7 @@ func (s *MySuite) TestAuth(c *C) {
 	c.Check(obtained, Equals, expected)
 }
 
-func (s *MySuite) TestConvertToDynamo(c *C) {
-	var table = TableDescription{
-		Name: "users",
-		Attributes: []AttributeDefinition{
-			AttributeDefinition{"id", "N", true},
-			AttributeDefinition{"email", "S", true},
-			AttributeDefinition{"country", "S", true},
-		},
-		PrimaryKey: PrimaryKeyDefinition{
-			Type: "HASH",
-			Hash: "id",
-		},
-		SecondaryIndexes: []SecondaryIndexDefinition{
-			SecondaryIndexDefinition{
-				Name: "email",
-				Type: "HASH",
-				Hash: "email",
-			},
-			SecondaryIndexDefinition{
-				Name: "country",
-				Type: "HASH",
-				Hash: "country",
-			},
-		},
-	}
-
+func (s *TableSuite) TestConvertToDynamo(c *C) {
 	var expected = dynamodb.TableDescriptionT{
 		TableName: "users",
 		AttributeDefinitions: []dynamodb.AttributeDefinitionT{
@@ -81,7 +122,7 @@ func (s *MySuite) TestConvertToDynamo(c *C) {
 				},
 			},
 			dynamodb.GlobalSecondaryIndexT{
-				IndexName: "counrty",
+				IndexName: "country",
 				KeySchema: []dynamodb.KeySchemaT{
 					dynamodb.KeySchemaT{"country", "HASH"},
 				},
@@ -98,7 +139,26 @@ func (s *MySuite) TestConvertToDynamo(c *C) {
 		},
 	}
 
-	obtained := ConvertToDynamo(table)
+	obtained := ConvertToDynamo(table_suite.Tables["users"])
 
-	reflect.DeepEqual(expected, obtained)
+	c.Check(obtained, DeepEquals, expected)
+}
+
+func (s *TableSuite) TestGetTable(c *C) {
+	expected := dynamodb.Table{
+		Server: &dynamodb.Server{
+			Auth:   aws.Auth{AccessKey: "access", SecretKey: "secret"},
+			Region: aws.Region{DynamoDBEndpoint: "http://127.0.0.1:4567"},
+		},
+		Name: "users",
+		Key: dynamodb.PrimaryKey{
+			KeyAttribute: &dynamodb.Attribute{
+				Type: "N",
+				Name: "id",
+			},
+		},
+	}
+	obtained := GetTable("users")
+
+	c.Check(obtained, DeepEquals, expected)
 }

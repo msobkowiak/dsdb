@@ -4,8 +4,8 @@ import (
 	"github.com/goamz/goamz/dynamodb"
 )
 
-func getUsersSchema() TableDescription {
-	var table = TableDescription{
+var tables = map[string]TableDescription{
+	"users": TableDescription{
 		Name: "users",
 		Attributes: []AttributeDefinition{
 			AttributeDefinition{"id", "N", true},
@@ -22,13 +22,15 @@ func getUsersSchema() TableDescription {
 				Hash: "email",
 			},
 		},
-	}
-
-	return table
-}
-
-func getGameScoreSchema() TableDescription {
-	var table = TableDescription{
+		Authentication: Authentication{
+			DynamoAuth{
+				Region:    "http://127.0.0.1:4567",
+				AccessKey: "access",
+				SecretKey: "secret",
+			},
+		},
+	},
+	"game_scores": TableDescription{
 		Name: "game_scores",
 		Attributes: []AttributeDefinition{
 			AttributeDefinition{"user_id", "N", true},
@@ -49,21 +51,18 @@ func getGameScoreSchema() TableDescription {
 				Range: "losts",
 			},
 		},
-	}
-
-	return table
+		Authentication: Authentication{
+			DynamoAuth{
+				Region:    "http://127.0.0.1:4567",
+				AccessKey: "access",
+				SecretKey: "secret",
+			},
+		},
+	},
 }
 
 func GetSchema(tableName string) TableDescription {
-	if tableName == "users" {
-		return getUsersSchema()
-	} else if tableName == "game_scores" {
-		return getGameScoreSchema()
-	}
-
-	return TableDescription{
-		Name: tableName,
-	}
+	return tables[tableName]
 }
 
 func LoadUsersData() [][]dynamodb.Attribute {
