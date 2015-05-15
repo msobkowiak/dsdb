@@ -34,9 +34,9 @@ func (s *TableSuite) TestRepoGetAllItems(c *C) {
 
 	c.Check(obtained, DeepEquals, expected)
 
-	//_, err := RepoGetAllItems("not_existed_table")
+	_, err := RepoGetAllItems("not_existed_table")
 
-	//c.Check(err, ErrorMatches, "Table not_existed_table does not exists.")
+	c.Check(err, ErrorMatches, "Table not_existed_table not found.")
 }
 
 func (s *TableSuite) TestRepoGetItemByHash(c *C) {

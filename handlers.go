@@ -205,7 +205,12 @@ func secondaryIndexSearch(index, rangeOperator, hashKey, rangeValue []string, ta
 }
 
 func getItemsByHash(table, hash string, w http.ResponseWriter) {
-	if GetTableDescription(table).HasRange() {
+	schema, err := GetTableDescription(table)
+	if err != nil {
+		writeErrorResponse("Table "+table+" not found.", 404, w)
+	}
+
+	if schema.HasRange() {
 		data, err := RepoGetItemByRange(table, hash)
 		writeCollectionResponse(data, err, w)
 	} else {

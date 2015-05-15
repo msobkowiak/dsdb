@@ -6,7 +6,11 @@ import (
 )
 
 func RepoGetAllItems(tableName string) ([]map[string]string, error) {
-	table := GetDynamoTable(tableName)
+	table, err := GetDynamoTable(tableName)
+	if err != nil {
+		return nil, err
+	}
+
 	items, err := table.Scan(nil)
 	if err != nil {
 		return nil, err
@@ -16,7 +20,10 @@ func RepoGetAllItems(tableName string) ([]map[string]string, error) {
 }
 
 func RepoGetItemByHash(tableName, hash string) (map[string]string, error) {
-	table := GetDynamoTable(tableName)
+	table, err := GetDynamoTable(tableName)
+	if err != nil {
+		return nil, err
+	}
 	item, err := table.GetItem(&dynamodb.Key{HashKey: hash})
 	if err != nil {
 		return nil, err
@@ -26,7 +33,10 @@ func RepoGetItemByHash(tableName, hash string) (map[string]string, error) {
 }
 
 func RepoGetItemByHashRange(tableName, hashKey, rangeKey string) (map[string]string, error) {
-	table := GetDynamoTable(tableName)
+	table, err := GetDynamoTable(tableName)
+	if err != nil {
+		return nil, err
+	}
 	item, err := table.GetItem(&dynamodb.Key{HashKey: hashKey, RangeKey: rangeKey})
 	if err != nil {
 		return nil, err
@@ -36,8 +46,11 @@ func RepoGetItemByHashRange(tableName, hashKey, rangeKey string) (map[string]str
 }
 
 func RepoGetItemByRange(tableName, hashValue string) ([]map[string]string, error) {
-	table := GetDynamoTable(tableName)
-	hashName := GetTableDescription(tableName).PrimaryKey.Hash
+	table, err := GetDynamoTable(tableName)
+	if err != nil {
+		return nil, err
+	}
+	hashName := table.Key.KeyAttribute.Name
 
 	atrrComaparations := buildQueryHash(tableName, hashName, hashValue)
 
@@ -50,8 +63,11 @@ func RepoGetItemByRange(tableName, hashValue string) ([]map[string]string, error
 }
 
 func RepoGetItemByIndexHash(tableName, indexName, hashValue string) ([]map[string]string, error) {
-	table := GetDynamoTable(tableName)
-	schema := GetTableDescription(tableName)
+	table, err := GetDynamoTable(tableName)
+	if err != nil {
+		return nil, err
+	}
+	schema, _ := GetTableDescription(tableName)
 	index, err := schema.GetIndexByName(indexName)
 	if err != nil {
 		return nil, err
@@ -68,8 +84,11 @@ func RepoGetItemByIndexHash(tableName, indexName, hashValue string) ([]map[strin
 }
 
 func RepoGetItemsByRangeOp(tableName, hashValue, operator string, rangeValue []string) ([]map[string]string, error) {
-	table := GetDynamoTable(tableName)
-	schema := GetTableDescription(tableName)
+	table, err := GetDynamoTable(tableName)
+	if err != nil {
+		return nil, err
+	}
+	schema, _ := GetTableDescription(tableName)
 
 	var atrrComaparations []dynamodb.AttributeComparison
 	atrrComaparations = buildQueryRange(tableName, schema.PrimaryKey.Hash, hashValue, operator, schema.PrimaryKey.Range, rangeValue)
@@ -83,8 +102,11 @@ func RepoGetItemsByRangeOp(tableName, hashValue, operator string, rangeValue []s
 }
 
 func RepoGetItemsByIndexRangeOp(tableName, indexName, hashValue, operator string, rangeValue []string) ([]map[string]string, error) {
-	table := GetDynamoTable(tableName)
-	schema := GetTableDescription(tableName)
+	table, err := GetDynamoTable(tableName)
+	if err != nil {
+		return nil, err
+	}
+	schema, _ := GetTableDescription(tableName)
 	index, err := schema.GetIndexByName(indexName)
 	if err != nil {
 		return nil, err
@@ -102,7 +124,10 @@ func RepoGetItemsByIndexRangeOp(tableName, indexName, hashValue, operator string
 }
 
 func RepoDeleteItem(tableName, hash string) (bool, error) {
-	schema := GetTableDescription(tableName)
+	schema, err := GetTableDescription(tableName)
+	if err != nil {
+		return false, err
+	}
 
 	if schema.HasRange() {
 		return deleteItems(tableName, hash, schema)
@@ -112,7 +137,11 @@ func RepoDeleteItem(tableName, hash string) (bool, error) {
 }
 
 func RepoDeleteItemWithRange(tableName, hashKey, rangeKey string) (bool, error) {
-	table := GetDynamoTable(tableName)
+	table, err := GetDynamoTable(tableName)
+	if err != nil {
+		return false, err
+	}
+
 	status, err := table.DeleteItem(&dynamodb.Key{HashKey: hashKey, RangeKey: rangeKey})
 	if err != nil {
 		return status, err
@@ -130,7 +159,10 @@ func RepoDeleteItemWithRange(tableName, hashKey, rangeKey string) (bool, error) 
 ]
 */
 func RepoAddItem(tableName, hash string, item []Attribute) (bool, error) {
-	table := GetDynamoTable(tableName)
+	table, err := GetDynamoTable(tableName)
+	if err != nil {
+		return false, err
+	}
 
 	var attr = make([]dynamodb.Attribute, len(item))
 	for i := range item {
@@ -144,7 +176,10 @@ func RepoAddItem(tableName, hash string, item []Attribute) (bool, error) {
 }
 
 func RepoAddItemHashRange(tableName, hashKey, rangeKey string, item []Attribute) (bool, error) {
-	table := GetDynamoTable(tableName)
+	table, err := GetDynamoTable(tableName)
+	if err != nil {
+		return false, err
+	}
 
 	var attr = make([]dynamodb.Attribute, len(item))
 	for i := range item {
@@ -177,7 +212,7 @@ func getDataAsArray(items []map[string]*dynamodb.Attribute) []map[string]string 
 }
 
 func buildQueryRange(tableName, hashName, hashValue, operator, rangeName string, rangeValue []string) []dynamodb.AttributeComparison {
-	schema := GetTableDescription(tableName)
+	schema, _ := GetTableDescription(tableName)
 
 	var atrrs1 = make([]dynamodb.Attribute, 1)
 	atrrs1[0] = dynamodb.Attribute{
@@ -226,7 +261,7 @@ func buildQueryRange(tableName, hashName, hashValue, operator, rangeName string,
 }
 
 func buildQueryHash(tableName, hashName, hashValue string) []dynamodb.AttributeComparison {
-	schema := GetTableDescription(tableName)
+	schema, _ := GetTableDescription(tableName)
 
 	var atrrs = make([]dynamodb.Attribute, 1)
 	atrrs[0] = dynamodb.Attribute{
@@ -246,7 +281,7 @@ func buildQueryHash(tableName, hashName, hashValue string) []dynamodb.AttributeC
 }
 
 func deleteItem(tableName, hash string) (bool, error) {
-	table := GetDynamoTable(tableName)
+	table, _ := GetDynamoTable(tableName)
 
 	status, err := table.DeleteItem(&dynamodb.Key{HashKey: hash})
 	if err != nil {
@@ -257,7 +292,7 @@ func deleteItem(tableName, hash string) (bool, error) {
 }
 
 func deleteItems(tableName, hash string, schema TableDescription) (bool, error) {
-	table := GetDynamoTable(tableName)
+	table, _ := GetDynamoTable(tableName)
 
 	items, _ := RepoGetItemByRange(tableName, hash)
 	for i := range items {

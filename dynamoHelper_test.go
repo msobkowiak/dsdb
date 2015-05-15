@@ -222,7 +222,11 @@ func (s *TableSuite) TestGetDynamoTable(c *C) {
 			},
 		},
 	}
-	obtained := GetDynamoTable("users")
+	obtained, _ := GetDynamoTable("users")
 
 	c.Check(obtained, DeepEquals, expected)
+
+	_, err := GetDynamoTable("not_existed_table")
+
+	c.Check(err, ErrorMatches, "Table not_existed_table not found.")
 }
