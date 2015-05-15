@@ -11,10 +11,22 @@ import (
 func Test(t *testing.T) { TestingT(t) }
 
 type TableSuite struct {
-	Tables map[string]TableDescription
+	Tables   map[string]TableDescription
+	Data     map[string][][]dynamodb.Attribute
+	HashKeys map[string][]string
 }
 
 func (s *TableSuite) SetUpSuite(c *C) {
+	users := CreateTable(table_suite.Tables["users"])
+	games := CreateTable(table_suite.Tables["game_scores"])
+	AddItems(users, table_suite.Data["users"], nil)
+	AddItems(games, table_suite.Data["game_scores"], table_suite.HashKeys["game_scores"])
+}
+
+func (s *TableSuite) TearDownSuite(c *C) {
+	dynamAuth := table_suite.Tables["users"].Authentication.Dynamo
+	db := Auth(dynamAuth.Region, dynamAuth.AccessKey, dynamAuth.SecretKey)
+	DeleteAllTables(db)
 }
 
 var table_suite = &TableSuite{
@@ -78,6 +90,58 @@ var table_suite = &TableSuite{
 					SecretKey: "secret",
 				},
 			},
+		},
+	},
+	Data: map[string][][]dynamodb.Attribute{
+		"users": [][]dynamodb.Attribute{
+			[]dynamodb.Attribute{
+				*dynamodb.NewStringAttribute("first_name", "Monika"),
+				*dynamodb.NewStringAttribute("last_name", "Sobkowiak"),
+				*dynamodb.NewStringAttribute("email", "monika@gmail.com"),
+				*dynamodb.NewStringAttribute("country", "Poland"),
+			},
+			[]dynamodb.Attribute{
+				*dynamodb.NewStringAttribute("first_name", "Ana"),
+				*dynamodb.NewStringAttribute("last_name", "Dias"),
+				*dynamodb.NewStringAttribute("email", "ana@gmail.com"),
+				*dynamodb.NewStringAttribute("country", "Portugal"),
+			},
+			[]dynamodb.Attribute{
+				*dynamodb.NewStringAttribute("first_name", "Nuno"),
+				*dynamodb.NewStringAttribute("last_name", "Correia"),
+				*dynamodb.NewStringAttribute("email", "nuno@exemple.com"),
+				*dynamodb.NewStringAttribute("country", "Portugal"),
+			},
+		},
+		"game_scores": [][]dynamodb.Attribute{
+			[]dynamodb.Attribute{
+				*dynamodb.NewNumericAttribute("top_score", "5842"),
+				*dynamodb.NewNumericAttribute("wins", "8"),
+				*dynamodb.NewNumericAttribute("losts", "2"),
+			},
+			[]dynamodb.Attribute{
+				*dynamodb.NewNumericAttribute("top_score", "123"),
+				*dynamodb.NewNumericAttribute("wins", "3"),
+				*dynamodb.NewNumericAttribute("losts", "0"),
+			},
+			[]dynamodb.Attribute{
+				*dynamodb.NewNumericAttribute("top_score", "333333"),
+				*dynamodb.NewNumericAttribute("wins", "30"),
+				*dynamodb.NewNumericAttribute("losts", "90"),
+			},
+			[]dynamodb.Attribute{
+				*dynamodb.NewNumericAttribute("top_score", "12"),
+				*dynamodb.NewNumericAttribute("wins", "2"),
+				*dynamodb.NewNumericAttribute("losts", "2"),
+			},
+		},
+	},
+	HashKeys: map[string][]string{
+		"game_scores": []string{
+			"Game X",
+			"Game Y",
+			"Game Y",
+			"Game Z",
 		},
 	},
 }

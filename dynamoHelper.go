@@ -3,7 +3,12 @@ package main
 import (
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/dynamodb"
+	"log"
+	"strconv"
+	"time"
 )
+
+const TIMEOUT = 1 * time.Minute
 
 func Auth(region, accessKey, secretKey string) dynamodb.Server {
 	dynamodbRegion := aws.Region{DynamoDBEndpoint: region}
@@ -39,6 +44,143 @@ func GetDynamoTable(tableName string) dynamodb.Table {
 	pk, _ := tableDescription.BuildPrimaryKey()
 
 	return *db.NewTable(tableDescription.TableName, pk)
+}
+
+func DeleteAllTables(db dynamodb.Server) {
+	tables, err := db.ListTables()
+	if err != nil {
+		log.Println(err)
+	} else {
+		for i := range tables {
+			deleteTable(db, tables[i])
+		}
+	}
+}
+
+func CreateTable(t TableDescription) dynamodb.Table {
+	// get dynamoDB Server
+	dynamAuth := t.Authentication.Dynamo
+	db := Auth(dynamAuth.Region, dynamAuth.AccessKey, dynamAuth.SecretKey)
+
+	// create a new table
+	tab := ConvertToDynamo(t)
+	pk, _ := tab.BuildPrimaryKey()
+	table := db.NewTable(tab.TableName, pk)
+	_, err := db.CreateTable(tab)
+	if err != nil {
+		log.Println(err)
+	}
+	waitUntilStatus(table, "ACTIVE")
+
+	return *table
+}
+
+func AddItems(t dynamodb.Table, data [][]dynamodb.Attribute, hashKeys []string) {
+	if hashKeys != nil {
+		for i := range data {
+			ok, err := t.PutItem(hashKeys[i], strconv.FormatInt(int64(i+1), 10), data[i])
+			if !ok {
+				log.Println(err)
+			}
+		}
+	} else {
+		for i := range data {
+			ok, err := t.PutItem(strconv.FormatInt(int64(i+1), 10), "", data[i])
+			if !ok {
+				log.Println(err)
+			}
+		}
+	}
+}
+
+func GetTableDescription(tableName string) TableDescription {
+	return tables[tableName]
+}
+
+func waitUntilTableDeleted(db dynamodb.Server, t *dynamodb.Table, tableName string) {
+	done := make(chan bool)
+	timeout := time.After(TIMEOUT)
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			default:
+				tables, err := db.ListTables()
+				if err != nil {
+					log.Fatal(err)
+				}
+				if findTableByName(tables, tableName) {
+					time.Sleep(5 * time.Second)
+				} else {
+					done <- true
+					return
+				}
+			}
+		}
+	}()
+	select {
+	case <-done:
+		break
+	case <-timeout:
+		log.Println("Expect the table to be deleted but timed out")
+		close(done)
+	}
+}
+
+func waitUntilStatus(t *dynamodb.Table, status string) {
+	done := make(chan bool)
+	timeout := time.After(TIMEOUT)
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			default:
+				desc, err := t.DescribeTable()
+				if err != nil {
+					log.Fatal(err)
+				}
+				if desc.TableStatus == status {
+					done <- true
+					return
+				}
+				time.Sleep(5 * time.Second)
+			}
+		}
+	}()
+	select {
+	case <-done:
+		break
+	case <-timeout:
+		log.Printf("Expect a status to be %s, but timed out\n", status)
+		close(done)
+	}
+}
+
+func deleteTable(db dynamodb.Server, tableName string) {
+	tabDescription, err := db.DescribeTable(tableName)
+	if err != nil {
+		log.Println(err)
+	} else {
+		_, err := db.DeleteTable(*tabDescription)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
+	pk, _ := tabDescription.BuildPrimaryKey()
+	table := db.NewTable(tableName, pk)
+	waitUntilTableDeleted(db, table, tableName)
+}
+
+func findTableByName(tables []string, name string) bool {
+	for _, t := range tables {
+		if t == name {
+			return true
+		}
+	}
+	return false
 }
 
 func addHash(hashName string, atrrs []AttributeDefinition, keySchema []dynamodb.KeySchemaT) {

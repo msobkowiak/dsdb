@@ -2,153 +2,182 @@ package main
 
 import (
 	"github.com/goamz/goamz/dynamodb"
-	"log"
-	"strconv"
-	"time"
 )
 
-const TIMEOUT = 1 * time.Minute
-
-func deleteTable(db dynamodb.Server, tableName string) {
-	tabDescription, err := db.DescribeTable(tableName)
-	if err != nil {
-		log.Println(err)
-	} else {
-		_, err := db.DeleteTable(*tabDescription)
-		if err != nil {
-			log.Println(err)
-		}
-	}
-
-	pk, _ := tabDescription.BuildPrimaryKey()
-	table := db.NewTable(tableName, pk)
-	WaitUntilTableDeleted(db, table, tableName)
+var tables = map[string]TableDescription{
+	"users": TableDescription{
+		Name: "users",
+		Attributes: []AttributeDefinition{
+			AttributeDefinition{"id", "N", true},
+			AttributeDefinition{"email", "S", true},
+		},
+		PrimaryKey: PrimaryKeyDefinition{
+			Type: "HASH",
+			Hash: "id",
+		},
+		SecondaryIndexes: []SecondaryIndexDefinition{
+			SecondaryIndexDefinition{
+				Name: "email",
+				Type: "HASH",
+				Hash: "email",
+			},
+		},
+		Authentication: Authentication{
+			DynamoAuth{
+				Region:    "http://127.0.0.1:4567",
+				AccessKey: "access",
+				SecretKey: "secret",
+			},
+		},
+	},
+	"game_scores": TableDescription{
+		Name: "game_scores",
+		Attributes: []AttributeDefinition{
+			AttributeDefinition{"user_id", "N", true},
+			AttributeDefinition{"game_title", "S", true},
+			AttributeDefinition{"wins", "N", true},
+			AttributeDefinition{"losts", "N", true},
+		},
+		PrimaryKey: PrimaryKeyDefinition{
+			Type:  "RANGE",
+			Hash:  "game_title",
+			Range: "user_id",
+		},
+		SecondaryIndexes: []SecondaryIndexDefinition{
+			SecondaryIndexDefinition{
+				Name:  "wins_losts",
+				Type:  "RANGE",
+				Hash:  "wins",
+				Range: "losts",
+			},
+		},
+		Authentication: Authentication{
+			DynamoAuth{
+				Region:    "http://127.0.0.1:4567",
+				AccessKey: "access",
+				SecretKey: "secret",
+			},
+		},
+	},
 }
 
-func deleteAllTables(db dynamodb.Server) {
-	tables, err := db.ListTables()
-	if err != nil {
-		log.Println(err)
-	} else {
-		for i := range tables {
-			deleteTable(db, tables[i])
-		}
-	}
+var data = map[string][][]dynamodb.Attribute{
+	"users": [][]dynamodb.Attribute{
+		[]dynamodb.Attribute{
+			*dynamodb.NewStringAttribute("first_name", "Monika"),
+			*dynamodb.NewStringAttribute("last_name", "Sobkowiak"),
+			*dynamodb.NewStringAttribute("email", "monika@gmail.com"),
+			*dynamodb.NewStringAttribute("country", "Poland"),
+		},
+		[]dynamodb.Attribute{
+			*dynamodb.NewStringAttribute("first_name", "Ana"),
+			*dynamodb.NewStringAttribute("last_name", "Dias"),
+			*dynamodb.NewStringAttribute("email", "ana@gmail.com"),
+			*dynamodb.NewStringAttribute("country", "Portugal"),
+		},
+		[]dynamodb.Attribute{
+			*dynamodb.NewStringAttribute("first_name", "Nuno"),
+			*dynamodb.NewStringAttribute("last_name", "Correia"),
+			*dynamodb.NewStringAttribute("email", "nuno@exemple.com"),
+			*dynamodb.NewStringAttribute("country", "Portugal"),
+		},
+		[]dynamodb.Attribute{
+			*dynamodb.NewStringAttribute("first_name", "Isabel"),
+			*dynamodb.NewStringAttribute("last_name", "Frenandes"),
+			*dynamodb.NewStringAttribute("email", "isabel@gmail.com"),
+			*dynamodb.NewStringAttribute("country", "Spain"),
+		},
+		[]dynamodb.Attribute{
+			*dynamodb.NewStringAttribute("first_name", "Miguel"),
+			*dynamodb.NewStringAttribute("last_name", "Oliveira"),
+			*dynamodb.NewStringAttribute("email", "miguel@gmail.com"),
+			*dynamodb.NewStringAttribute("country", "Portugal"),
+		},
+		[]dynamodb.Attribute{
+			*dynamodb.NewStringAttribute("first_name", "Mikolaj"),
+			*dynamodb.NewStringAttribute("last_name", "Nowak"),
+			*dynamodb.NewStringAttribute("email", "mikolaj@exemple.com"),
+			*dynamodb.NewStringAttribute("country", "Poland"),
+		},
+		[]dynamodb.Attribute{
+			*dynamodb.NewStringAttribute("first_name", "Joao"),
+			*dynamodb.NewStringAttribute("last_name", "Silva"),
+			*dynamodb.NewStringAttribute("email", "joao@gmail.com"),
+			*dynamodb.NewStringAttribute("country", "Portugal"),
+		},
+		[]dynamodb.Attribute{
+			*dynamodb.NewStringAttribute("first_name", "Mat"),
+			*dynamodb.NewStringAttribute("last_name", "Deamon"),
+			*dynamodb.NewStringAttribute("email", "mat@gmail.com"),
+			*dynamodb.NewStringAttribute("country", "USA"),
+		},
+	},
+	"game_scores": [][]dynamodb.Attribute{
+		[]dynamodb.Attribute{
+			*dynamodb.NewNumericAttribute("top_score", "5842"),
+			*dynamodb.NewNumericAttribute("wins", "8"),
+			*dynamodb.NewNumericAttribute("losts", "2"),
+		},
+		[]dynamodb.Attribute{
+			*dynamodb.NewNumericAttribute("top_score", "123"),
+			*dynamodb.NewNumericAttribute("wins", "3"),
+			*dynamodb.NewNumericAttribute("losts", "0"),
+		},
+		[]dynamodb.Attribute{
+			*dynamodb.NewNumericAttribute("top_score", "333333"),
+			*dynamodb.NewNumericAttribute("wins", "30"),
+			*dynamodb.NewNumericAttribute("losts", "90"),
+		},
+		[]dynamodb.Attribute{
+			*dynamodb.NewNumericAttribute("top_score", "12"),
+			*dynamodb.NewNumericAttribute("wins", "2"),
+			*dynamodb.NewNumericAttribute("losts", "2"),
+		},
+		[]dynamodb.Attribute{
+			*dynamodb.NewNumericAttribute("top_score", "45"),
+			*dynamodb.NewNumericAttribute("wins", "5"),
+			*dynamodb.NewNumericAttribute("losts", "1"),
+		},
+		[]dynamodb.Attribute{
+			*dynamodb.NewNumericAttribute("top_score", "667854"),
+			*dynamodb.NewNumericAttribute("wins", "399"),
+			*dynamodb.NewNumericAttribute("losts", "100"),
+		},
+		[]dynamodb.Attribute{
+			*dynamodb.NewNumericAttribute("top_score", "23"),
+			*dynamodb.NewNumericAttribute("wins", "1"),
+			*dynamodb.NewNumericAttribute("losts", "30"),
+		},
+		[]dynamodb.Attribute{
+			*dynamodb.NewNumericAttribute("top_score", "58542"),
+			*dynamodb.NewNumericAttribute("wins", "70"),
+			*dynamodb.NewNumericAttribute("losts", "2"),
+		},
+	},
 }
 
-func createTable(db dynamodb.Server, tableName string) {
-	// create a new table
-	tab := ConvertToDynamo(GetTableDescription(tableName))
-	pk, _ := tab.BuildPrimaryKey()
-	table := db.NewTable(tab.TableName, pk)
-	_, err := db.CreateTable(tab)
-	if err != nil {
-		log.Println(err)
-	}
-
-	// load data
-	data, hashKeys := GetTableData(tableName)
-
-	// put data into table
-	WaitUntilStatus(table, "ACTIVE")
-	if hashKeys != nil {
-		for i := range data {
-			ok, err := table.PutItem(hashKeys[i], strconv.FormatInt(int64(i+1), 10), data[i])
-			if !ok {
-				log.Println(err)
-			}
-		}
-	} else {
-		for i := range data {
-			ok, err := table.PutItem(strconv.FormatInt(int64(i+1), 10), "", data[i])
-			if !ok {
-				log.Println(err)
-			}
-		}
-	}
-
-}
-
-func WaitUntilTableDeleted(db dynamodb.Server, t *dynamodb.Table, tableName string) {
-	done := make(chan bool)
-	timeout := time.After(TIMEOUT)
-	go func() {
-		for {
-			select {
-			case <-done:
-				return
-			default:
-				tables, err := db.ListTables()
-				if err != nil {
-					log.Fatal(err)
-				}
-				if findTableByName(tables, tableName) {
-					time.Sleep(5 * time.Second)
-				} else {
-					done <- true
-					return
-				}
-			}
-		}
-	}()
-	select {
-	case <-done:
-		break
-	case <-timeout:
-		log.Println("Expect the table to be deleted but timed out")
-		close(done)
-	}
-}
-
-func WaitUntilStatus(t *dynamodb.Table, status string) {
-	// We should wait until the table is in specified status because a real DynamoDB has some delay for ready
-	done := make(chan bool)
-	timeout := time.After(TIMEOUT)
-	go func() {
-		for {
-			select {
-			case <-done:
-				return
-			default:
-				desc, err := t.DescribeTable()
-				if err != nil {
-					log.Fatal(err)
-				}
-				if desc.TableStatus == status {
-					done <- true
-					return
-				}
-				time.Sleep(5 * time.Second)
-			}
-		}
-	}()
-	select {
-	case <-done:
-		break
-	case <-timeout:
-		log.Printf("Expect a status to be %s, but timed out\n", status)
-		close(done)
-	}
-}
-
-func findTableByName(tables []string, name string) bool {
-	for _, t := range tables {
-		if t == name {
-			return true
-		}
-	}
-	return false
-}
-
-func createAllTables(db dynamodb.Server) {
-	createTable(db, "users")
-	createTable(db, "game_scores")
+var hashKeys = map[string][]string{
+	"game_scores": []string{
+		"Mario Brodes",
+		"Medal of Honor",
+		"Game X",
+		"Mario Brodes",
+		"Game X",
+		"Game Y",
+		"Game Y",
+		"Mario Brodes",
+	},
 }
 
 func Bootstrap() {
 	db := Auth("http://127.0.0.1:4567", "key", "secret")
 
 	// cleanup the database
-	deleteAllTables(db)
-	createAllTables(db)
+	DeleteAllTables(db)
+
+	// create tables with example data
+	users := CreateTable(tables["users"])
+	AddItems(users, data["users"], nil)
+	games := CreateTable(tables["game_scores"])
+	AddItems(games, data["game_scores"], hashKeys["game_scores"])
 }
