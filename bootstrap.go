@@ -169,6 +169,10 @@ var hashKeys = map[string][]string{
 	},
 }
 
+func ElasticSearchInit() {
+
+}
+
 func Bootstrap() {
 	db := Auth("http://127.0.0.1:4567", "key", "secret")
 

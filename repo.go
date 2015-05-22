@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/goamz/goamz/dynamodb"
 	//"log"
+	"fmt"
 )
 
 func RepoGetAllItems(tableName string) ([]map[string]string, error) {
@@ -45,7 +46,7 @@ func RepoGetItemByHashRange(tableName, hashKey, rangeKey string) (map[string]str
 	return getData(item), nil
 }
 
-func RepoGetItemByRange(tableName, hashValue string) ([]map[string]string, error) {
+func RepoGetItemsByHash(tableName, hashValue string) ([]map[string]string, error) {
 	table, err := GetDynamoTable(tableName)
 	if err != nil {
 		return nil, err
@@ -152,10 +153,10 @@ func RepoDeleteItemWithRange(tableName, hashKey, rangeKey string) (bool, error) 
 
 /*
 [
-	{"Name":"first_name", "Type":"S", "Value":"monika"},
-	{"Name":"email", "Type":"S", "Value":"monika@example.pl"},
-	{"Name":"last_name", "Type":"S", "Value":"Nowak"},
-	{"Name":"counrty", "Type":"S", "Value":"Poland"}
+	{"Description": {"Name": "first_name", "Type": "S"}, "Value": "monika"},
+	{"Description": {"Name": "email", "Type": "S"}, "Value": "monika@example.pl"},
+	{"Description": {"Name": "last_name", "Type": "S"}, "Value": "Nowak"},
+	{"Description": {"Name": "counrty", "Type": "S"}, "Value": "Poland"}
 ]
 */
 func RepoAddItem(tableName, hash string, item []Attribute) (bool, error) {
@@ -163,15 +164,18 @@ func RepoAddItem(tableName, hash string, item []Attribute) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
+	fmt.Println("item", item)
 	var attr = make([]dynamodb.Attribute, len(item))
 	for i := range item {
+		fmt.Println(i)
 		attr[i] = dynamodb.Attribute{
 			Type:  item[i].Description.Type,
 			Name:  item[i].Description.Name,
 			Value: item[i].Value,
 		}
+		//fmt.Println(attr[i].Type, attr[i].Name)
 	}
+	fmt.Println("attr", attr)
 	return table.PutItem(hash, "", attr)
 }
 
@@ -294,7 +298,7 @@ func deleteItem(tableName, hash string) (bool, error) {
 func deleteItems(tableName, hash string, schema TableDescription) (bool, error) {
 	table, _ := GetDynamoTable(tableName)
 
-	items, _ := RepoGetItemByRange(tableName, hash)
+	items, _ := RepoGetItemsByHash(tableName, hash)
 	for i := range items {
 		status, err := table.DeleteItem(&dynamodb.Key{HashKey: items[i][schema.PrimaryKey.Hash], RangeKey: items[i][schema.PrimaryKey.Range]})
 		if err != nil {

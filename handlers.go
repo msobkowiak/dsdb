@@ -46,7 +46,7 @@ func GetByRange(w http.ResponseWriter, r *http.Request) {
 	rangeKey := vars["range"]
 	table := vars["table"]
 
-	data, err := RepoGetItemByRange(table, rangeKey)
+	data, err := RepoGetItemsByHash(table, rangeKey)
 	writeCollectionResponse(data, err, w)
 }
 
@@ -100,9 +100,11 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+
 	if err := r.Body.Close(); err != nil {
 		panic(err)
 	}
+
 	if err := json.Unmarshal(body, &item); err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
@@ -112,6 +114,8 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	t, _ := RepoAddItem(table, hashKey, item)
+	AddToElasticSearch(table, hashKey, item)
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(t); err != nil {
@@ -211,7 +215,7 @@ func getItemsByHash(table, hash string, w http.ResponseWriter) {
 	}
 
 	if schema.HasRange() {
-		data, err := RepoGetItemByRange(table, hash)
+		data, err := RepoGetItemsByHash(table, hash)
 		writeCollectionResponse(data, err, w)
 	} else {
 		data, err := RepoGetItemByHash(table, hash)
