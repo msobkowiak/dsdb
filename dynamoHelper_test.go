@@ -115,23 +115,23 @@ var table_suite = &TableSuite{
 		},
 		"game_scores": [][]dynamodb.Attribute{
 			[]dynamodb.Attribute{
-				*dynamodb.NewNumericAttribute("top_score", "5842"),
+				*dynamodb.NewNumericAttribute("top_score", "582"),
 				*dynamodb.NewNumericAttribute("wins", "8"),
 				*dynamodb.NewNumericAttribute("losts", "2"),
 			},
 			[]dynamodb.Attribute{
 				*dynamodb.NewNumericAttribute("top_score", "123"),
-				*dynamodb.NewNumericAttribute("wins", "3"),
+				*dynamodb.NewNumericAttribute("wins", "8"),
 				*dynamodb.NewNumericAttribute("losts", "0"),
 			},
 			[]dynamodb.Attribute{
 				*dynamodb.NewNumericAttribute("top_score", "333333"),
-				*dynamodb.NewNumericAttribute("wins", "30"),
+				*dynamodb.NewNumericAttribute("wins", "8"),
 				*dynamodb.NewNumericAttribute("losts", "90"),
 			},
 			[]dynamodb.Attribute{
 				*dynamodb.NewNumericAttribute("top_score", "12"),
-				*dynamodb.NewNumericAttribute("wins", "2"),
+				*dynamodb.NewNumericAttribute("wins", "8"),
 				*dynamodb.NewNumericAttribute("losts", "2"),
 			},
 		},

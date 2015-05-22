@@ -55,7 +55,7 @@ func (s *TableSuite) TestRepoGetItemByHash(c *C) {
 func (s *TableSuite) TestRepoGetItemByHashRange(c *C) {
 	expected := map[string]string{
 		"user_id":    "2",
-		"wins":       "3",
+		"wins":       "8",
 		"game_title": "Game Y",
 		"losts":      "0",
 		"top_score":  "123",
@@ -76,14 +76,14 @@ func (s *TableSuite) TestRepoGetItemsByHash(c *C) {
 		map[string]string{
 			"top_score":  "123",
 			"user_id":    "2",
-			"wins":       "3",
+			"wins":       "8",
 			"game_title": "Game Y",
 			"losts":      "0",
 		},
 		map[string]string{
 			"top_score":  "333333",
 			"user_id":    "3",
-			"wins":       "30",
+			"wins":       "8",
 			"game_title": "Game Y",
 			"losts":      "90",
 		},
@@ -103,15 +103,36 @@ func (s *TableSuite) TestRepoGetItemsByHash(c *C) {
 func (s *TableSuite) TestRepoGetItemByIndexHash(c *C) {
 	expected := []map[string]string{
 		map[string]string{
+			"top_score":  "123",
+			"user_id":    "2",
+			"wins":       "8",
+			"game_title": "Game Y",
+			"losts":      "0",
+		},
+		map[string]string{
+			"top_score":  "582",
+			"user_id":    "1",
+			"wins":       "8",
+			"game_title": "Game X",
+			"losts":      "2",
+		},
+		map[string]string{
+			"top_score":  "12",
+			"user_id":    "4",
+			"wins":       "8",
+			"game_title": "Game Z",
+			"losts":      "2",
+		},
+		map[string]string{
 			"top_score":  "333333",
 			"user_id":    "3",
-			"wins":       "30",
+			"wins":       "8",
 			"game_title": "Game Y",
 			"losts":      "90",
 		},
 	}
 
-	obtained, _ := RepoGetItemByIndexHash("game_scores", "wins_losts", "30")
+	obtained, _ := RepoGetItemByIndexHash("game_scores", "wins_losts", "8")
 	c.Check(obtained, DeepEquals, expected)
 
 	_, err := RepoGetItemByIndexHash("not_existed_table", "index", "1")
@@ -139,24 +160,17 @@ func (s *TableSuite) TestRepoGetItemsByRangeOp(c *C) {
 		map[string]string{
 			"top_score":  "123",
 			"user_id":    "2",
-			"wins":       "3",
+			"wins":       "8",
 			"game_title": "Game Y",
 			"losts":      "0",
 		},
 		map[string]string{
 			"top_score":  "333333",
 			"user_id":    "3",
-			"wins":       "30",
+			"wins":       "8",
 			"game_title": "Game Y",
 			"losts":      "90",
 		},
-		/*map[string]string{
-			"top_score":  "12",
-			"user_id":    "4",
-			"wins":       "2",
-			"game_title": "Game Z",
-			"losts":      "2",
-		},*/
 	}
 
 	obtainedGT, _ := RepoGetItemsByRangeOp("game_scores", "Game Y", "GT", []string{"1"})
@@ -166,14 +180,14 @@ func (s *TableSuite) TestRepoGetItemsByRangeOp(c *C) {
 		map[string]string{
 			"top_score":  "123",
 			"user_id":    "2",
-			"wins":       "3",
+			"wins":       "8",
 			"game_title": "Game Y",
 			"losts":      "0",
 		},
 		map[string]string{
 			"top_score":  "333333",
 			"user_id":    "3",
-			"wins":       "30",
+			"wins":       "8",
 			"game_title": "Game Y",
 			"losts":      "90",
 		},
@@ -186,7 +200,7 @@ func (s *TableSuite) TestRepoGetItemsByRangeOp(c *C) {
 		map[string]string{
 			"top_score":  "123",
 			"user_id":    "2",
-			"wins":       "3",
+			"wins":       "8",
 			"game_title": "Game Y",
 			"losts":      "0",
 		},
@@ -199,14 +213,14 @@ func (s *TableSuite) TestRepoGetItemsByRangeOp(c *C) {
 		map[string]string{
 			"top_score":  "123",
 			"user_id":    "2",
-			"wins":       "3",
+			"wins":       "8",
 			"game_title": "Game Y",
 			"losts":      "0",
 		},
 		map[string]string{
 			"top_score":  "333333",
 			"user_id":    "3",
-			"wins":       "30",
+			"wins":       "8",
 			"game_title": "Game Y",
 			"losts":      "90",
 		},
@@ -219,14 +233,14 @@ func (s *TableSuite) TestRepoGetItemsByRangeOp(c *C) {
 		map[string]string{
 			"top_score":  "123",
 			"user_id":    "2",
-			"wins":       "3",
+			"wins":       "8",
 			"game_title": "Game Y",
 			"losts":      "0",
 		},
 		map[string]string{
 			"top_score":  "333333",
 			"user_id":    "3",
-			"wins":       "30",
+			"wins":       "8",
 			"game_title": "Game Y",
 			"losts":      "90",
 		},
@@ -234,7 +248,203 @@ func (s *TableSuite) TestRepoGetItemsByRangeOp(c *C) {
 
 	obtainedBETWEEN, _ := RepoGetItemsByRangeOp("game_scores", "Game Y", "BETWEEN", []string{"2", "4"})
 	c.Check(obtainedBETWEEN, DeepEquals, expectedBETWEEN)
+}
+
+func (s *TableSuite) TestRepoGetItemsByIndexRangeOp(c *C) {
+	expectedGT := []map[string]string{
+		map[string]string{
+			"top_score":  "333333",
+			"user_id":    "3",
+			"wins":       "8",
+			"game_title": "Game Y",
+			"losts":      "90",
+		},
+	}
+
+	obtainedGT, _ := RepoGetItemsByIndexRangeOp("game_scores", "wins_losts", "8", "GT", []string{"2"})
+	c.Check(obtainedGT, DeepEquals, expectedGT)
+
+	expectedGE := []map[string]string{
+		map[string]string{
+			"top_score":  "582",
+			"user_id":    "1",
+			"wins":       "8",
+			"game_title": "Game X",
+			"losts":      "2",
+		},
+		map[string]string{
+			"top_score":  "12",
+			"user_id":    "4",
+			"wins":       "8",
+			"game_title": "Game Z",
+			"losts":      "2",
+		},
+		map[string]string{
+			"top_score":  "333333",
+			"user_id":    "3",
+			"wins":       "8",
+			"game_title": "Game Y",
+			"losts":      "90",
+		},
+	}
+
+	obtainedGE, _ := RepoGetItemsByIndexRangeOp("game_scores", "wins_losts", "8", "GE", []string{"2"})
+	c.Check(obtainedGE, DeepEquals, expectedGE)
+
+	expectedLT := []map[string]string{
+		map[string]string{
+			"top_score":  "123",
+			"user_id":    "2",
+			"wins":       "8",
+			"game_title": "Game Y",
+			"losts":      "0",
+		},
+	}
+
+	obtainedLT, _ := RepoGetItemsByIndexRangeOp("game_scores", "wins_losts", "8", "LT", []string{"2"})
+	c.Check(obtainedLT, DeepEquals, expectedLT)
+
+	expectedLE := []map[string]string{
+		map[string]string{
+			"top_score":  "123",
+			"user_id":    "2",
+			"wins":       "8",
+			"game_title": "Game Y",
+			"losts":      "0",
+		},
+		map[string]string{
+			"top_score":  "582",
+			"user_id":    "1",
+			"wins":       "8",
+			"game_title": "Game X",
+			"losts":      "2",
+		},
+		map[string]string{
+			"top_score":  "12",
+			"user_id":    "4",
+			"wins":       "8",
+			"game_title": "Game Z",
+			"losts":      "2",
+		},
+	}
+
+	obtainedLE, _ := RepoGetItemsByIndexRangeOp("game_scores", "wins_losts", "8", "LE", []string{"2"})
+	c.Check(obtainedLE, DeepEquals, expectedLE)
+
+	expectedBETWEEN := []map[string]string{
+		map[string]string{
+			"top_score":  "333333",
+			"user_id":    "3",
+			"wins":       "8",
+			"game_title": "Game Y",
+			"losts":      "90",
+		},
+	}
+
+	obtainedBETWEEN, _ := RepoGetItemsByIndexRangeOp("game_scores", "wins_losts", "8", "BETWEEN", []string{"80", "100"})
+	c.Check(obtainedBETWEEN, DeepEquals, expectedBETWEEN)
 
 }
 
-//func RepoGetItemsByRangeOp(tableName, hashValue, operator string, rangeValue []string) ([]map[string]string, error)
+func (s *TableSuite) TestAddItem(c *C) {
+	item := []Attribute{
+		Attribute{
+			Description: AttributeDefinition{
+				Name: "first_name",
+				Type: "S",
+			},
+			Value: "Test_first_name",
+		},
+		Attribute{
+			Description: AttributeDefinition{
+				Name: "last_name",
+				Type: "S",
+			},
+			Value: "Test_last_name",
+		},
+		Attribute{
+			Description: AttributeDefinition{
+				Name: "email",
+				Type: "S",
+			},
+			Value: "Test_email",
+		},
+		Attribute{
+			Description: AttributeDefinition{
+				Name: "country",
+				Type: "S",
+			},
+			Value: "Test_country",
+		},
+	}
+
+	status, _ := RepoAddItem("users", "4", item)
+	c.Check(status, Equals, true)
+
+	expected := map[string]string{
+		"country":    "Test_country",
+		"email":      "Test_email",
+		"first_name": "Test_first_name",
+		"id":         "4",
+		"last_name":  "Test_last_name",
+	}
+
+	obtained, _ := RepoGetItemByHash("users", "4")
+	c.Check(obtained, DeepEquals, expected)
+}
+
+func (s *TableSuite) TestRepoDeleteItem(c *C) {
+	status, _ := RepoDeleteItem("users", "4")
+	c.Check(status, Equals, true)
+
+	_, err := RepoGetItemByHash("users", "4")
+	c.Check(err, ErrorMatches, "Item not found")
+}
+
+func (s *TableSuite) TestAddItemHashRange(c *C) {
+	item := []Attribute{
+		Attribute{
+			Description: AttributeDefinition{
+				Name: "top_score",
+				Type: "N",
+			},
+			Value: "111",
+		},
+		Attribute{
+			Description: AttributeDefinition{
+				Name: "wins",
+				Type: "N",
+			},
+			Value: "222",
+		},
+		Attribute{
+			Description: AttributeDefinition{
+				Name: "losts",
+				Type: "N",
+			},
+			Value: "333",
+		},
+	}
+
+	status, _ := RepoAddItemHashRange("game_scores", "test_hash_value", "1", item)
+	c.Check(status, Equals, true)
+
+	expected := map[string]string{
+		"top_score":  "111",
+		"user_id":    "1",
+		"wins":       "222",
+		"game_title": "test_hash_value",
+		"losts":      "333",
+	}
+
+	obtained, _ := RepoGetItemByHashRange("game_scores", "test_hash_value", "1")
+	c.Check(obtained, DeepEquals, expected)
+}
+
+func (s *TableSuite) TestRepoDeleteItemWithRange(c *C) {
+	status, _ := RepoDeleteItemWithRange("game_scores", "test_hash_value", "1")
+	c.Check(status, Equals, true)
+
+	_, err := RepoGetItemByHashRange("game_scores", "test_range_value", "1")
+	c.Check(err, ErrorMatches, "Item not found")
+}
