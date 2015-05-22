@@ -134,4 +134,107 @@ func (s *TableSuite) TestRepoGetItemByIndexHash(c *C) {
 	c.Check(obtained, DeepEquals, expected)
 }
 
-//func RepoGetItemByIndexHash(tableName, indexName, hashValue string) ([]map[string]string, error) {
+func (s *TableSuite) TestRepoGetItemsByRangeOp(c *C) {
+	expectedGT := []map[string]string{
+		map[string]string{
+			"top_score":  "123",
+			"user_id":    "2",
+			"wins":       "3",
+			"game_title": "Game Y",
+			"losts":      "0",
+		},
+		map[string]string{
+			"top_score":  "333333",
+			"user_id":    "3",
+			"wins":       "30",
+			"game_title": "Game Y",
+			"losts":      "90",
+		},
+		/*map[string]string{
+			"top_score":  "12",
+			"user_id":    "4",
+			"wins":       "2",
+			"game_title": "Game Z",
+			"losts":      "2",
+		},*/
+	}
+
+	obtainedGT, _ := RepoGetItemsByRangeOp("game_scores", "Game Y", "GT", []string{"1"})
+	c.Check(obtainedGT, DeepEquals, expectedGT)
+
+	expectedGE := []map[string]string{
+		map[string]string{
+			"top_score":  "123",
+			"user_id":    "2",
+			"wins":       "3",
+			"game_title": "Game Y",
+			"losts":      "0",
+		},
+		map[string]string{
+			"top_score":  "333333",
+			"user_id":    "3",
+			"wins":       "30",
+			"game_title": "Game Y",
+			"losts":      "90",
+		},
+	}
+
+	obtainedGE, _ := RepoGetItemsByRangeOp("game_scores", "Game Y", "GE", []string{"2"})
+	c.Check(obtainedGE, DeepEquals, expectedGE)
+
+	expectedLT := []map[string]string{
+		map[string]string{
+			"top_score":  "123",
+			"user_id":    "2",
+			"wins":       "3",
+			"game_title": "Game Y",
+			"losts":      "0",
+		},
+	}
+
+	obtainedLT, _ := RepoGetItemsByRangeOp("game_scores", "Game Y", "LT", []string{"3"})
+	c.Check(obtainedLT, DeepEquals, expectedLT)
+
+	expectedLE := []map[string]string{
+		map[string]string{
+			"top_score":  "123",
+			"user_id":    "2",
+			"wins":       "3",
+			"game_title": "Game Y",
+			"losts":      "0",
+		},
+		map[string]string{
+			"top_score":  "333333",
+			"user_id":    "3",
+			"wins":       "30",
+			"game_title": "Game Y",
+			"losts":      "90",
+		},
+	}
+
+	obtainedLE, _ := RepoGetItemsByRangeOp("game_scores", "Game Y", "LE", []string{"3"})
+	c.Check(obtainedLE, DeepEquals, expectedLE)
+
+	expectedBETWEEN := []map[string]string{
+		map[string]string{
+			"top_score":  "123",
+			"user_id":    "2",
+			"wins":       "3",
+			"game_title": "Game Y",
+			"losts":      "0",
+		},
+		map[string]string{
+			"top_score":  "333333",
+			"user_id":    "3",
+			"wins":       "30",
+			"game_title": "Game Y",
+			"losts":      "90",
+		},
+	}
+
+	obtainedBETWEEN, _ := RepoGetItemsByRangeOp("game_scores", "Game Y", "BETWEEN", []string{"2", "4"})
+	c.Check(obtainedBETWEEN, DeepEquals, expectedBETWEEN)
+
+}
+
+//func RepoGetItemsByRangeOp(tableName, hashValue, operator string, rangeValue []string) ([]map[string]string, error)

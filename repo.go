@@ -2,8 +2,6 @@ package main
 
 import (
 	"github.com/goamz/goamz/dynamodb"
-	//"log"
-	"fmt"
 )
 
 func RepoGetAllItems(tableName string) ([]map[string]string, error) {
@@ -93,7 +91,6 @@ func RepoGetItemsByRangeOp(tableName, hashValue, operator string, rangeValue []s
 
 	var atrrComaparations []dynamodb.AttributeComparison
 	atrrComaparations = buildQueryRange(tableName, schema.PrimaryKey.Hash, hashValue, operator, schema.PrimaryKey.Range, rangeValue)
-
 	items, err := table.Query(atrrComaparations)
 	if err != nil {
 		return nil, err
@@ -164,18 +161,14 @@ func RepoAddItem(tableName, hash string, item []Attribute) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	fmt.Println("item", item)
 	var attr = make([]dynamodb.Attribute, len(item))
 	for i := range item {
-		fmt.Println(i)
 		attr[i] = dynamodb.Attribute{
 			Type:  item[i].Description.Type,
 			Name:  item[i].Description.Name,
 			Value: item[i].Value,
 		}
-		//fmt.Println(attr[i].Type, attr[i].Name)
 	}
-	fmt.Println("attr", attr)
 	return table.PutItem(hash, "", attr)
 }
 
@@ -217,6 +210,7 @@ func getDataAsArray(items []map[string]*dynamodb.Attribute) []map[string]string 
 
 func buildQueryRange(tableName, hashName, hashValue, operator, rangeName string, rangeValue []string) []dynamodb.AttributeComparison {
 	schema, _ := GetTableDescription(tableName)
+	rangeType := schema.GetTypeOfAttribute(rangeName)
 
 	var atrrs1 = make([]dynamodb.Attribute, 1)
 	atrrs1[0] = dynamodb.Attribute{
@@ -231,16 +225,19 @@ func buildQueryRange(tableName, hashName, hashValue, operator, rangeName string,
 		atrrs2[0] = dynamodb.Attribute{
 			Value: rangeValue[0],
 			Name:  rangeName,
+			Type:  rangeType,
 		}
 	} else if len(rangeValue) == 2 {
 		atrrs2 = make([]dynamodb.Attribute, 2)
 		atrrs2[0] = dynamodb.Attribute{
 			Value: rangeValue[0],
 			Name:  rangeName,
+			Type:  rangeType,
 		}
 		atrrs2[1] = dynamodb.Attribute{
 			Value: rangeValue[1],
 			Name:  rangeName,
+			Type:  rangeType,
 		}
 	}
 	atrrs2[0] = dynamodb.Attribute{
@@ -280,7 +277,6 @@ func buildQueryHash(tableName, hashName, hashValue string) []dynamodb.AttributeC
 		ComparisonOperator: "EQ",
 		AttributeValueList: atrrs,
 	}
-
 	return atrrComaparations
 }
 
