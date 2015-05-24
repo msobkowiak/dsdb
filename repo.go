@@ -148,6 +148,14 @@ func RepoDeleteItemWithRange(tableName, hashKey, rangeKey string) (bool, error) 
 	return status, nil
 }
 
+/*
+[
+	{"Description": {"Name": "first_name", "Type": "S"}, "Value": "monika"},
+	{"Description": {"Name": "email", "Type": "S"}, "Value": "monika@example.pl"},
+	{"Description": {"Name": "last_name", "Type": "S"}, "Value": "Nowak"},
+	{"Description": {"Name": "counrty", "Type": "S"}, "Value": "Poland"}
+]
+*/
 func RepoAddItem(tableName, hash string, item []Attribute) (bool, error) {
 	table, err := GetDynamoTable(tableName)
 	if err != nil {

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/goamz/goamz/dynamodb"
+	"strconv"
 )
 
 var tables = map[string]TableDescription{
@@ -61,97 +61,128 @@ var tables = map[string]TableDescription{
 	},
 }
 
-var data = map[string][][]dynamodb.Attribute{
-	"users": [][]dynamodb.Attribute{
-		[]dynamodb.Attribute{
-			*dynamodb.NewStringAttribute("first_name", "Monika"),
-			*dynamodb.NewStringAttribute("last_name", "Sobkowiak"),
-			*dynamodb.NewStringAttribute("email", "monika@gmail.com"),
-			*dynamodb.NewStringAttribute("country", "Poland"),
+var data = map[string][][]Attribute{
+	"users": [][]Attribute{
+		[]Attribute{
+			//Attribute{Description: AttributeDefinition{Name: "id", Type: "N"}, Value: "1"},
+			Attribute{Description: AttributeDefinition{Name: "first_name", Type: "S"}, Value: "Monika"},
+			Attribute{Description: AttributeDefinition{Name: "last_name", Type: "S"}, Value: "Sobkowiak"},
+			Attribute{Description: AttributeDefinition{Name: "email", Type: "S"}, Value: "monika@gmail.com"},
+			Attribute{Description: AttributeDefinition{Name: "country", Type: "S"}, Value: "Poland"},
 		},
-		[]dynamodb.Attribute{
-			*dynamodb.NewStringAttribute("first_name", "Ana"),
-			*dynamodb.NewStringAttribute("last_name", "Dias"),
-			*dynamodb.NewStringAttribute("email", "ana@gmail.com"),
-			*dynamodb.NewStringAttribute("country", "Portugal"),
+		[]Attribute{
+			//Attribute{Description: AttributeDefinition{Name: "id", Type: "N"}, Value: "2"},
+			Attribute{Description: AttributeDefinition{Name: "first_name", Type: "S"}, Value: "Ana"},
+			Attribute{Description: AttributeDefinition{Name: "last_name", Type: "S"}, Value: "Dias"},
+			Attribute{Description: AttributeDefinition{Name: "email", Type: "S"}, Value: "ana@gmail.com"},
+			Attribute{Description: AttributeDefinition{Name: "country", Type: "S"}, Value: "Portugal"},
 		},
-		[]dynamodb.Attribute{
-			*dynamodb.NewStringAttribute("first_name", "Nuno"),
-			*dynamodb.NewStringAttribute("last_name", "Correia"),
-			*dynamodb.NewStringAttribute("email", "nuno@exemple.com"),
-			*dynamodb.NewStringAttribute("country", "Portugal"),
+		[]Attribute{
+			//Attribute{Description: AttributeDefinition{Name: "id", Type: "N"}, Value: "3"},
+			Attribute{Description: AttributeDefinition{Name: "first_name", Type: "S"}, Value: "Nuno"},
+			Attribute{Description: AttributeDefinition{Name: "last_name", Type: "S"}, Value: "Correia"},
+			Attribute{Description: AttributeDefinition{Name: "email", Type: "S"}, Value: "nuno@example.com"},
+			Attribute{Description: AttributeDefinition{Name: "country", Type: "S"}, Value: "Portugal"},
 		},
-		[]dynamodb.Attribute{
-			*dynamodb.NewStringAttribute("first_name", "Isabel"),
-			*dynamodb.NewStringAttribute("last_name", "Frenandes"),
-			*dynamodb.NewStringAttribute("email", "isabel@gmail.com"),
-			*dynamodb.NewStringAttribute("country", "Spain"),
+		[]Attribute{
+			//Attribute{Description: AttributeDefinition{Name: "id", Type: "N"}, Value: "3"},
+			Attribute{Description: AttributeDefinition{Name: "first_name", Type: "S"}, Value: "Nuno"},
+			Attribute{Description: AttributeDefinition{Name: "last_name", Type: "S"}, Value: "Correia"},
+			Attribute{Description: AttributeDefinition{Name: "email", Type: "S"}, Value: "nuno@example.com"},
+			Attribute{Description: AttributeDefinition{Name: "country", Type: "S"}, Value: "Portugal"},
 		},
-		[]dynamodb.Attribute{
-			*dynamodb.NewStringAttribute("first_name", "Miguel"),
-			*dynamodb.NewStringAttribute("last_name", "Oliveira"),
-			*dynamodb.NewStringAttribute("email", "miguel@gmail.com"),
-			*dynamodb.NewStringAttribute("country", "Portugal"),
+		[]Attribute{
+			//Attribute{Description: AttributeDefinition{Name: "id", Type: "N"}, Value: "4"},
+			Attribute{Description: AttributeDefinition{Name: "first_name", Type: "S"}, Value: "Isabel"},
+			Attribute{Description: AttributeDefinition{Name: "last_name", Type: "S"}, Value: "Fernendes"},
+			Attribute{Description: AttributeDefinition{Name: "email", Type: "S"}, Value: "isabel@gmail.com"},
+			Attribute{Description: AttributeDefinition{Name: "country", Type: "S"}, Value: "Spain"},
 		},
-		[]dynamodb.Attribute{
-			*dynamodb.NewStringAttribute("first_name", "Mikolaj"),
-			*dynamodb.NewStringAttribute("last_name", "Nowak"),
-			*dynamodb.NewStringAttribute("email", "mikolaj@exemple.com"),
-			*dynamodb.NewStringAttribute("country", "Poland"),
+		[]Attribute{
+			//Attribute{Description: AttributeDefinition{Name: "id", Type: "N"}, Value: "5"},
+			Attribute{Description: AttributeDefinition{Name: "first_name", Type: "S"}, Value: "Miguel"},
+			Attribute{Description: AttributeDefinition{Name: "last_name", Type: "S"}, Value: "Oliveira"},
+			Attribute{Description: AttributeDefinition{Name: "email", Type: "S"}, Value: "miguel@gmail.com"},
+			Attribute{Description: AttributeDefinition{Name: "country", Type: "S"}, Value: "Portugal"},
 		},
-		[]dynamodb.Attribute{
-			*dynamodb.NewStringAttribute("first_name", "Joao"),
-			*dynamodb.NewStringAttribute("last_name", "Silva"),
-			*dynamodb.NewStringAttribute("email", "joao@gmail.com"),
-			*dynamodb.NewStringAttribute("country", "Portugal"),
+		[]Attribute{
+			//Attribute{Description: AttributeDefinition{Name: "id", Type: "N"}, Value: "6"},
+			Attribute{Description: AttributeDefinition{Name: "first_name", Type: "S"}, Value: "Mikolaj"},
+			Attribute{Description: AttributeDefinition{Name: "last_name", Type: "S"}, Value: "Nowak"},
+			Attribute{Description: AttributeDefinition{Name: "email", Type: "S"}, Value: "mikolaj@example.com"},
+			Attribute{Description: AttributeDefinition{Name: "country", Type: "S"}, Value: "Poland"},
 		},
-		[]dynamodb.Attribute{
-			*dynamodb.NewStringAttribute("first_name", "Mat"),
-			*dynamodb.NewStringAttribute("last_name", "Deamon"),
-			*dynamodb.NewStringAttribute("email", "mat@gmail.com"),
-			*dynamodb.NewStringAttribute("country", "USA"),
+		[]Attribute{
+			//Attribute{Description: AttributeDefinition{Name: "id", Type: "N"}, Value: "7"},
+			Attribute{Description: AttributeDefinition{Name: "first_name", Type: "S"}, Value: "Joao"},
+			Attribute{Description: AttributeDefinition{Name: "last_name", Type: "S"}, Value: "Silva"},
+			Attribute{Description: AttributeDefinition{Name: "email", Type: "S"}, Value: "joao@gmail.com"},
+			Attribute{Description: AttributeDefinition{Name: "country", Type: "S"}, Value: "Portugal"},
+		},
+		[]Attribute{
+			//Attribute{Description: AttributeDefinition{Name: "id", Type: "N"}, Value: "8"},
+			Attribute{Description: AttributeDefinition{Name: "first_name", Type: "S"}, Value: "Mat"},
+			Attribute{Description: AttributeDefinition{Name: "last_name", Type: "S"}, Value: "Smith"},
+			Attribute{Description: AttributeDefinition{Name: "email", Type: "S"}, Value: "mat@example.com"},
+			Attribute{Description: AttributeDefinition{Name: "country", Type: "S"}, Value: "USA"},
 		},
 	},
-	"game_scores": [][]dynamodb.Attribute{
-		[]dynamodb.Attribute{
-			*dynamodb.NewNumericAttribute("top_score", "5842"),
-			*dynamodb.NewNumericAttribute("wins", "8"),
-			*dynamodb.NewNumericAttribute("losts", "2"),
+	"game_scores": [][]Attribute{
+		[]Attribute{
+			//Attribute{Description: AttributeDefinition{Name: "user_id", Type: "N"}, Value: "1"},
+			//Attribute{Description: AttributeDefinition{Name: "game_title", Type: "S"}, Value: "Game X"},
+			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: "123"},
+			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: "20"},
+			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: "0"},
 		},
-		[]dynamodb.Attribute{
-			*dynamodb.NewNumericAttribute("top_score", "123"),
-			*dynamodb.NewNumericAttribute("wins", "3"),
-			*dynamodb.NewNumericAttribute("losts", "0"),
+		[]Attribute{
+			//Attribute{Description: AttributeDefinition{Name: "user_id", Type: "N"}, Value: "2"},
+			//Attribute{Description: AttributeDefinition{Name: "game_title", Type: "S"}, Value: "Game X"},
+			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: "333"},
+			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: "90"},
+			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: "21"},
 		},
-		[]dynamodb.Attribute{
-			*dynamodb.NewNumericAttribute("top_score", "333333"),
-			*dynamodb.NewNumericAttribute("wins", "30"),
-			*dynamodb.NewNumericAttribute("losts", "90"),
+		[]Attribute{
+			//Attribute{Description: AttributeDefinition{Name: "user_id", Type: "N"}, Value: "3"},
+			//Attribute{Description: AttributeDefinition{Name: "game_title", Type: "S"}, Value: "Game Y"},
+			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: "444"},
+			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: "99"},
+			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: "59"},
 		},
-		[]dynamodb.Attribute{
-			*dynamodb.NewNumericAttribute("top_score", "12"),
-			*dynamodb.NewNumericAttribute("wins", "2"),
-			*dynamodb.NewNumericAttribute("losts", "2"),
+		[]Attribute{
+			//Attribute{Description: AttributeDefinition{Name: "user_id", Type: "N"}, Value: "4"},
+			//Attribute{Description: AttributeDefinition{Name: "game_title", Type: "S"}, Value: "Game Y"},
+			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: "555"},
+			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: "12"},
+			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: "9"},
 		},
-		[]dynamodb.Attribute{
-			*dynamodb.NewNumericAttribute("top_score", "45"),
-			*dynamodb.NewNumericAttribute("wins", "5"),
-			*dynamodb.NewNumericAttribute("losts", "1"),
+		[]Attribute{
+			//Attribute{Description: AttributeDefinition{Name: "user_id", Type: "N"}, Value: "5"},
+			//Attribute{Description: AttributeDefinition{Name: "game_title", Type: "S"}, Value: "Game Z"},
+			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: "666"},
+			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: "7"},
+			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: "20"},
 		},
-		[]dynamodb.Attribute{
-			*dynamodb.NewNumericAttribute("top_score", "667854"),
-			*dynamodb.NewNumericAttribute("wins", "399"),
-			*dynamodb.NewNumericAttribute("losts", "100"),
+		[]Attribute{
+			//Attribute{Description: AttributeDefinition{Name: "user_id", Type: "N"}, Value: "6"},
+			//Attribute{Description: AttributeDefinition{Name: "game_title", Type: "S"}, Value: "Game Y"},
+			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: "122"},
+			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: "20"},
+			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: "7"},
 		},
-		[]dynamodb.Attribute{
-			*dynamodb.NewNumericAttribute("top_score", "23"),
-			*dynamodb.NewNumericAttribute("wins", "1"),
-			*dynamodb.NewNumericAttribute("losts", "30"),
+		[]Attribute{
+			//Attribute{Description: AttributeDefinition{Name: "user_id", Type: "N"}, Value: "7"},
+			//Attribute{Description: AttributeDefinition{Name: "game_title", Type: "S"}, Value: "Game X"},
+			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: "777"},
+			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: "190"},
+			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: "87"},
 		},
-		[]dynamodb.Attribute{
-			*dynamodb.NewNumericAttribute("top_score", "58542"),
-			*dynamodb.NewNumericAttribute("wins", "70"),
-			*dynamodb.NewNumericAttribute("losts", "2"),
+		[]Attribute{
+			//Attribute{Description: AttributeDefinition{Name: "user_id", Type: "N"}, Value: "8"},
+			//Attribute{Description: AttributeDefinition{Name: "game_title", Type: "S"}, Value: "Game Z"},
+			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: "888"},
+			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: "438"},
+			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: "164"},
 		},
 	},
 }
@@ -180,8 +211,19 @@ func Bootstrap() {
 	DeleteAllTables(db)
 
 	// create tables with example data
-	users := CreateTable(tables["users"])
-	AddItems(users, data["users"], nil)
-	games := CreateTable(tables["game_scores"])
-	AddItems(games, data["game_scores"], hashKeys["game_scores"])
+	tableName := "users"
+	CreateTable(tables[tableName])
+	for i := range data[tableName] {
+		hash := strconv.FormatInt(int64(i+1), 10)
+		RepoAddItem(tableName, hash, data[tableName][i])
+		AddToElasticSearch(tableName, hash, "", data[tableName][i])
+	}
+
+	tableName = "game_scores"
+	CreateTable(tables[tableName])
+	for i := range data[tableName] {
+		rangeValue := strconv.FormatInt(int64(i+1), 10)
+		RepoAddItemHashRange(tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
+		AddToElasticSearch(tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
+	}
 }

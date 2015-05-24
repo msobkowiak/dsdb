@@ -2,17 +2,17 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
-	//"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
-func Index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Welcome!")
+type Data struct {
+	Name  string
+	Value string
+	Type  string
 }
 
 func GetAllItems(w http.ResponseWriter, r *http.Request) {
@@ -95,17 +95,16 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 	table := vars["table"]
 	hashKey := vars["hash"]
 
-	var item []Attribute
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
 		panic(err)
 	}
-
 	if err := r.Body.Close(); err != nil {
 		panic(err)
 	}
 
-	if err := json.Unmarshal(body, &item); err != nil {
+	var data []Data
+	if err := json.Unmarshal(body, &data); err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
@@ -113,8 +112,10 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	item := convertDataToAttrubute(data)
+
 	t, _ := RepoAddItem(table, hashKey, item)
-	AddToElasticSearch(table, hashKey, item)
+	AddToElasticSearch(table, hashKey, "", item)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
@@ -129,7 +130,6 @@ func AddItemHashRange(w http.ResponseWriter, r *http.Request) {
 	hashKey := vars["hash"]
 	rangeKey := vars["range"]
 
-	var item []Attribute
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
 		panic(err)
@@ -137,15 +137,19 @@ func AddItemHashRange(w http.ResponseWriter, r *http.Request) {
 	if err := r.Body.Close(); err != nil {
 		panic(err)
 	}
-	if err := json.Unmarshal(body, &item); err != nil {
+	var data []Data
+	if err := json.Unmarshal(body, &data); err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
 			panic(err)
 		}
 	}
+	item := convertDataToAttrubute(data)
 
 	t, _ := RepoAddItemHashRange(table, hashKey, rangeKey, item)
+	AddToElasticSearch(table, hashKey, rangeKey, item)
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(t); err != nil {
@@ -177,6 +181,21 @@ func AddItemHashRange(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 }*/
+
+func convertDataToAttrubute(data []Data) []Attribute {
+	item := make([]Attribute, len(data))
+	for i := range data {
+		item[i] = Attribute{
+			Description: AttributeDefinition{
+				Name: data[i].Name,
+				Type: data[i].Type,
+			},
+			Value: data[i].Value,
+		}
+	}
+
+	return item
+}
 
 func primaryKeySearch(rangeOperator, hashKey, rangeValue []string, table string, w http.ResponseWriter) {
 	if rangeOperator == nil {
