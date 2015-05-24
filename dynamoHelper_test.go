@@ -11,83 +11,94 @@ import (
 func Test(t *testing.T) { TestingT(t) }
 
 type TableSuite struct {
-	Tables   map[string]TableDescription
+	Db       DBDescription
 	Data     map[string][][]dynamodb.Attribute
 	HashKeys map[string][]string
 }
 
 func (s *TableSuite) SetUpSuite(c *C) {
-	users := CreateTable(table_suite.Tables["users"])
-	games := CreateTable(table_suite.Tables["game_scores"])
+	users := CreateTable(table_suite.Db.Tables["users"])
+	games := CreateTable(table_suite.Db.Tables["game_scores"])
 	AddItems(users, table_suite.Data["users"], nil)
 	AddItems(games, table_suite.Data["game_scores"], table_suite.HashKeys["game_scores"])
 }
 
 func (s *TableSuite) TearDownSuite(c *C) {
-	dynamAuth := table_suite.Tables["users"].Authentication.Dynamo
+	dynamAuth := table_suite.Db.Authentication.Dynamo
 	db := Auth(dynamAuth.Region, dynamAuth.AccessKey, dynamAuth.SecretKey)
 	DeleteAllTables(db)
 }
 
 var table_suite = &TableSuite{
-	Tables: map[string]TableDescription{
-		"users": TableDescription{
-			Name: "users",
-			Attributes: []AttributeDefinition{
-				AttributeDefinition{"id", "N", true},
-				AttributeDefinition{"email", "S", true},
-				AttributeDefinition{"country", "S", true},
-			},
-			PrimaryKey: PrimaryKeyDefinition{
-				Type: "HASH",
-				Hash: "id",
-			},
-			SecondaryIndexes: []SecondaryIndexDefinition{
-				SecondaryIndexDefinition{
-					Name: "email",
-					Type: "HASH",
-					Hash: "email",
-				},
-				SecondaryIndexDefinition{
-					Name: "country",
-					Type: "HASH",
-					Hash: "country",
-				},
-			},
-			Authentication: Authentication{
-				DynamoAuth{
-					Region:    "http://127.0.0.1:4567",
-					AccessKey: "access",
-					SecretKey: "secret",
-				},
+
+	Db: DBDescription{
+		Name: "test",
+		Authentication: Authentication{
+			DynamoAuth{
+				Region:    "http://127.0.0.1:4567",
+				AccessKey: "access",
+				SecretKey: "secret",
 			},
 		},
-		"game_scores": TableDescription{
-			Name: "game_scores",
-			Attributes: []AttributeDefinition{
-				AttributeDefinition{"user_id", "N", true},
-				AttributeDefinition{"game_title", "S", true},
-				AttributeDefinition{"wins", "N", true},
-				AttributeDefinition{"losts", "N", true},
-			},
-			PrimaryKey: PrimaryKeyDefinition{
-				Type:  "RANGE",
-				Hash:  "game_title",
-				Range: "user_id",
-			},
-			SecondaryIndexes: []SecondaryIndexDefinition{
-				SecondaryIndexDefinition{
-					Name:  "wins_losts",
-					Type:  "RANGE",
-					Hash:  "wins",
-					Range: "losts",
+		Tables: map[string]TableDescription{
+			"users": TableDescription{
+				Name: "users",
+				Attributes: []AttributeDefinition{
+					AttributeDefinition{"id", "N", true},
+					AttributeDefinition{"email", "S", true},
+					AttributeDefinition{"country", "S", true},
+				},
+				PrimaryKey: PrimaryKeyDefinition{
+					Type: "HASH",
+					Hash: "id",
+				},
+				SecondaryIndexes: []SecondaryIndexDefinition{
+					SecondaryIndexDefinition{
+						Name: "email",
+						Type: "HASH",
+						Hash: "email",
+					},
+					SecondaryIndexDefinition{
+						Name: "country",
+						Type: "HASH",
+						Hash: "country",
+					},
+				},
+				Authentication: Authentication{
+					DynamoAuth{
+						Region:    "http://127.0.0.1:4567",
+						AccessKey: "access",
+						SecretKey: "secret",
+					},
 				},
 			},
-			Authentication: Authentication{
-				DynamoAuth{
-					Region:    "http://127.0.0.1:4567",
-					AccessKey: "access",
-					SecretKey: "secret",
+			"game_scores": TableDescription{
+				Name: "game_scores",
+				Attributes: []AttributeDefinition{
+					AttributeDefinition{"user_id", "N", true},
+					AttributeDefinition{"game_title", "S", true},
+					AttributeDefinition{"wins", "N", true},
+					AttributeDefinition{"losts", "N", true},
+				},
+				PrimaryKey: PrimaryKeyDefinition{
+					Type:  "RANGE",
+					Hash:  "game_title",
+					Range: "user_id",
+				},
+				SecondaryIndexes: []SecondaryIndexDefinition{
+					SecondaryIndexDefinition{
+						Name:  "wins_losts",
+						Type:  "RANGE",
+						Hash:  "wins",
+						Range: "losts",
+					},
+				},
+				Authentication: Authentication{
+					DynamoAuth{
+						Region:    "http://127.0.0.1:4567",
+						AccessKey: "access",
+						SecretKey: "secret",
+					},
 				},
 			},
 		},
@@ -203,7 +214,7 @@ func (s *TableSuite) TestConvertToDynamo(c *C) {
 		},
 	}
 
-	obtained := ConvertToDynamo(table_suite.Tables["users"])
+	obtained := ConvertToDynamo(table_suite.Db.Tables["users"])
 
 	c.Check(obtained, DeepEquals, expected)
 }

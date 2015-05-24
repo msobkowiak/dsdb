@@ -4,6 +4,12 @@ import (
 	"errors"
 )
 
+type DBDescription struct {
+	Name           string
+	Authentication Authentication
+	Tables         map[string]TableDescription
+}
+
 type TableDescription struct {
 	Name             string
 	Attributes       []AttributeDefinition

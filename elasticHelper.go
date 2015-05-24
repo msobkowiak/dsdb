@@ -7,7 +7,7 @@ import (
 	"github.com/olivere/elastic"
 )
 
-func AddToElasticSearch(indexName, idValue, rangeValue string, item []Attribute) {
+func AddToElasticSearch(indexName, indexType, idValue, rangeValue string, item []Attribute) {
 	client, err := elastic.NewClient()
 	if err != nil {
 		log.Println(err)
@@ -24,7 +24,7 @@ func AddToElasticSearch(indexName, idValue, rangeValue string, item []Attribute)
 	}
 
 	indexBody, _ := json.Marshal(data)
-	addIndexValue(indexName, idValue, indexBody, client)
+	addIndexValue(indexName, indexType, idValue, indexBody, client)
 }
 
 func createIndex(indexName string, client *elastic.Client) {
@@ -45,11 +45,11 @@ func createIndex(indexName string, client *elastic.Client) {
 	}
 }
 
-func addIndexValue(indexName, id string, indexBody []byte, client *elastic.Client) {
-	put, err := client.Index().
+func addIndexValue(indexName, indexType, id string, indexBody []byte, client *elastic.Client) {
+	_, err := client.Index().
 		Index(indexName).
 		Id(id).
-		Type(indexName).
+		Type(indexType).
 		BodyJson(string(indexBody)).
 		Do()
 	if err != nil {

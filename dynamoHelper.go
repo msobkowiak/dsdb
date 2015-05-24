@@ -43,7 +43,7 @@ func GetDynamoTable(tableName string) (dynamodb.Table, error) {
 		return dynamodb.Table{}, err
 	}
 
-	auth := schema.Authentication.Dynamo
+	auth := dbDescription.Authentication.Dynamo
 	db := Auth(auth.Region, auth.AccessKey, auth.SecretKey)
 
 	tableDescription := ConvertToDynamo(schema)
@@ -65,7 +65,7 @@ func DeleteAllTables(db dynamodb.Server) {
 
 func CreateTable(t TableDescription) dynamodb.Table {
 	// get dynamoDB Server
-	dynamAuth := t.Authentication.Dynamo
+	dynamAuth := dbDescription.Authentication.Dynamo
 	db := Auth(dynamAuth.Region, dynamAuth.AccessKey, dynamAuth.SecretKey)
 
 	// create a new table
@@ -100,8 +100,8 @@ func AddItems(t dynamodb.Table, data [][]dynamodb.Attribute, hashKeys []string) 
 }
 
 func GetTableDescription(tableName string) (TableDescription, error) {
-	if tables[tableName].Name != "" {
-		return tables[tableName], nil
+	if dbDescription.Tables[tableName].Name != "" {
+		return dbDescription.Tables[tableName], nil
 	} else {
 		return TableDescription{}, errors.New("Table " + tableName + " not found.")
 	}

@@ -5,13 +5,13 @@ import (
 )
 
 func (s *TableSuite) TestHasRange(c *C) {
-	c.Check(table_suite.Tables["users"].HasRange(), Equals, false)
-	c.Check(table_suite.Tables["game_scores"].HasRange(), Equals, true)
+	c.Check(table_suite.Db.Tables["users"].HasRange(), Equals, false)
+	c.Check(table_suite.Db.Tables["game_scores"].HasRange(), Equals, true)
 }
 
 func (s *TableSuite) TestGetTypeOfAttribute(c *C) {
-	c.Check(table_suite.Tables["users"].GetTypeOfAttribute("id"), Equals, "N")
-	c.Check(table_suite.Tables["users"].GetTypeOfAttribute("email"), Equals, "S")
+	c.Check(table_suite.Db.Tables["users"].GetTypeOfAttribute("id"), Equals, "N")
+	c.Check(table_suite.Db.Tables["users"].GetTypeOfAttribute("email"), Equals, "S")
 }
 
 func (s *TableSuite) TestGetIndexByName(c *C) {
@@ -21,8 +21,8 @@ func (s *TableSuite) TestGetIndexByName(c *C) {
 		Hash: "country",
 	}
 
-	obtained, _ := table_suite.Tables["users"].GetIndexByName("country")
-	_, err := table_suite.Tables["users"].GetIndexByName("not_existed_index")
+	obtained, _ := table_suite.Db.Tables["users"].GetIndexByName("country")
+	_, err := table_suite.Db.Tables["users"].GetIndexByName("not_existed_index")
 	c.Check(obtained, DeepEquals, expexted)
 	c.Check(err, ErrorMatches, "Index not found")
 }
