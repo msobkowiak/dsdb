@@ -2,6 +2,11 @@ package main
 
 import (
 	"strconv"
+
+	"fmt"
+	"io/ioutil"
+
+	"gopkg.in/yaml.v2"
 )
 
 var dbDescription = DBDescription{
@@ -165,7 +170,36 @@ var hashKeys = map[string][]string{
 	},
 }
 
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
+type data1 struct {
+	Database_name     string
+	Dynamo_region     string
+	Dynamo_access_key string
+	Dynamo_secret_key string
+	Tables            []struct {
+		Name              string
+		Attributes        []AttributeDefinition
+		Primary_key       PrimaryKeyDefinition
+		Secondary_indexes []SecondaryIndexDefinition
+	}
+}
+
 func Bootstrap() {
+	dat, err := ioutil.ReadFile("config.yml")
+	check(err)
+	//fmt.Print(string(dat))
+
+	d := data1{}
+
+	err = yaml.Unmarshal([]byte(dat), &d)
+
+	fmt.Println(d)
+
 	db := Auth("http://127.0.0.1:4567", "key", "secret")
 
 	// cleanup the database

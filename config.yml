@@ -1,0 +1,31 @@
+# database access
+database_name: "test"
+dynamo_region: "http://127.0.0.1:4567"
+dynamo_access_key: "access"
+dynamo_secret_key: "secret"
+
+# table dessription
+tables:
+    -
+        name: "users"
+        attributes:
+            - { name: "id", type: "N", required: true }
+            - { name: "email", type: "S", required: true }
+        primary_key:
+            type: "HASH"
+            hash: “id"
+        secondary_indexes:
+            - { name: "email", type: "HASH", hash: "email" }
+    -
+        name: "game_scores"
+        attributes:
+            - { name: "users_id", type: "N", required: true }
+            - { name: "game_title", type: "S", required: true }
+            - { name: "wins", type: "N", required: true }
+            - { name: "losts", type: "N", required: true }
+        primary_key:
+            type: "range"
+            hash: “game_title"
+            range: "user_id"
+        secondary_indexes:
+            - { name: "wins_losts", type: "RANGE", hash: "wins", range: "losts" }

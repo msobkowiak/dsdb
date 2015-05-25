@@ -15,7 +15,6 @@ type TableDescription struct {
 	Attributes       []AttributeDefinition
 	PrimaryKey       PrimaryKeyDefinition
 	SecondaryIndexes []SecondaryIndexDefinition
-	Authentication   Authentication
 }
 
 type AttributeDefinition struct {
