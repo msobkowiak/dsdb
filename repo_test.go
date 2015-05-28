@@ -29,7 +29,7 @@ func (s *TableSuite) TestRepoGetAllItems(c *C) {
 		},
 	}
 
-	obtained, _ := RepoGetAllItems("users")
+	obtained, _ := RepoGetAllItems("users_test")
 
 	c.Check(obtained, DeepEquals, expected)
 
@@ -46,7 +46,7 @@ func (s *TableSuite) TestRepoGetItemByHash(c *C) {
 		"email":      "ana@gmail.com",
 		"country":    "Portugal",
 	}
-	obtained, _ := RepoGetItemByHash("users", "2")
+	obtained, _ := RepoGetItemByHash("users_test", "2")
 
 	c.Check(obtained, DeepEquals, expected)
 }
@@ -59,14 +59,14 @@ func (s *TableSuite) TestRepoGetItemByHashRange(c *C) {
 		"losts":      "0",
 		"top_score":  "123",
 	}
-	obtained, _ := RepoGetItemByHashRange("game_scores", "Game Y", "2")
+	obtained, _ := RepoGetItemByHashRange("game_scores_test", "Game Y", "2")
 
 	c.Check(obtained, DeepEquals, expected)
 
 	_, err := RepoGetItemByHashRange("not_existed_table", "1", "2")
 	c.Check(err, ErrorMatches, "Table not_existed_table not found.")
 
-	_, err = RepoGetItemByHashRange("game_scores", "Game Y", "10")
+	_, err = RepoGetItemByHashRange("game_scores_test", "Game Y", "10")
 	c.Check(err, ErrorMatches, "Item not found")
 }
 
@@ -88,13 +88,13 @@ func (s *TableSuite) TestRepoGetItemsByHash(c *C) {
 		},
 	}
 
-	obtained, _ := RepoGetItemsByHash("game_scores", "Game Y")
+	obtained, _ := RepoGetItemsByHash("game_scores_test", "Game Y")
 	c.Check(obtained, DeepEquals, expected)
 
 	_, err := RepoGetItemsByHash("not_existed_table", "1")
 	c.Check(err, ErrorMatches, "Table not_existed_table not found.")
 
-	obtained, _ = RepoGetItemsByHash("game_scores", "not_existed_hash")
+	obtained, _ = RepoGetItemsByHash("game_scores_test", "not_existed_hash")
 	expected = []map[string]string{}
 	c.Check(obtained, DeepEquals, expected)
 }
@@ -131,13 +131,13 @@ func (s *TableSuite) TestRepoGetItemByIndexHash(c *C) {
 		},
 	}
 
-	obtained, _ := RepoGetItemByIndexHash("game_scores", "wins_losts", "8")
+	obtained, _ := RepoGetItemByIndexHash("game_scores_test", "wins_losts", "8")
 	c.Check(obtained, DeepEquals, expected)
 
 	_, err := RepoGetItemByIndexHash("not_existed_table", "index", "1")
 	c.Check(err, ErrorMatches, "Table not_existed_table not found.")
 
-	obtained, _ = RepoGetItemByIndexHash("game_scores", "not_existed_index", "1")
+	obtained, _ = RepoGetItemByIndexHash("game_scores_test", "not_existed_index", "1")
 	expected = []map[string]string(nil)
 	c.Check(obtained, DeepEquals, expected)
 
@@ -150,7 +150,7 @@ func (s *TableSuite) TestRepoGetItemByIndexHash(c *C) {
 			"last_name":  "Sobkowiak",
 		},
 	}
-	obtained, _ = RepoGetItemByIndexHash("users", "email", "monika@gmail.com")
+	obtained, _ = RepoGetItemByIndexHash("users_test", "email", "monika@gmail.com")
 	c.Check(obtained, DeepEquals, expected)
 }
 
@@ -172,7 +172,7 @@ func (s *TableSuite) TestRepoGetItemsByRangeOp(c *C) {
 		},
 	}
 
-	obtainedGT, _ := RepoGetItemsByRangeOp("game_scores", "Game Y", "GT", []string{"1"})
+	obtainedGT, _ := RepoGetItemsByRangeOp("game_scores_test", "Game Y", "GT", []string{"1"})
 	c.Check(obtainedGT, DeepEquals, expectedGT)
 
 	expectedGE := []map[string]string{
@@ -192,7 +192,7 @@ func (s *TableSuite) TestRepoGetItemsByRangeOp(c *C) {
 		},
 	}
 
-	obtainedGE, _ := RepoGetItemsByRangeOp("game_scores", "Game Y", "GE", []string{"2"})
+	obtainedGE, _ := RepoGetItemsByRangeOp("game_scores_test", "Game Y", "GE", []string{"2"})
 	c.Check(obtainedGE, DeepEquals, expectedGE)
 
 	expectedLT := []map[string]string{
@@ -205,7 +205,7 @@ func (s *TableSuite) TestRepoGetItemsByRangeOp(c *C) {
 		},
 	}
 
-	obtainedLT, _ := RepoGetItemsByRangeOp("game_scores", "Game Y", "LT", []string{"3"})
+	obtainedLT, _ := RepoGetItemsByRangeOp("game_scores_test", "Game Y", "LT", []string{"3"})
 	c.Check(obtainedLT, DeepEquals, expectedLT)
 
 	expectedLE := []map[string]string{
@@ -225,7 +225,7 @@ func (s *TableSuite) TestRepoGetItemsByRangeOp(c *C) {
 		},
 	}
 
-	obtainedLE, _ := RepoGetItemsByRangeOp("game_scores", "Game Y", "LE", []string{"3"})
+	obtainedLE, _ := RepoGetItemsByRangeOp("game_scores_test", "Game Y", "LE", []string{"3"})
 	c.Check(obtainedLE, DeepEquals, expectedLE)
 
 	expectedBETWEEN := []map[string]string{
@@ -245,7 +245,7 @@ func (s *TableSuite) TestRepoGetItemsByRangeOp(c *C) {
 		},
 	}
 
-	obtainedBETWEEN, _ := RepoGetItemsByRangeOp("game_scores", "Game Y", "BETWEEN", []string{"2", "4"})
+	obtainedBETWEEN, _ := RepoGetItemsByRangeOp("game_scores_test", "Game Y", "BETWEEN", []string{"2", "4"})
 	c.Check(obtainedBETWEEN, DeepEquals, expectedBETWEEN)
 }
 
@@ -260,7 +260,7 @@ func (s *TableSuite) TestRepoGetItemsByIndexRangeOp(c *C) {
 		},
 	}
 
-	obtainedGT, _ := RepoGetItemsByIndexRangeOp("game_scores", "wins_losts", "8", "GT", []string{"2"})
+	obtainedGT, _ := RepoGetItemsByIndexRangeOp("game_scores_test", "wins_losts", "8", "GT", []string{"2"})
 	c.Check(obtainedGT, DeepEquals, expectedGT)
 
 	expectedGE := []map[string]string{
@@ -287,7 +287,7 @@ func (s *TableSuite) TestRepoGetItemsByIndexRangeOp(c *C) {
 		},
 	}
 
-	obtainedGE, _ := RepoGetItemsByIndexRangeOp("game_scores", "wins_losts", "8", "GE", []string{"2"})
+	obtainedGE, _ := RepoGetItemsByIndexRangeOp("game_scores_test", "wins_losts", "8", "GE", []string{"2"})
 	c.Check(obtainedGE, DeepEquals, expectedGE)
 
 	expectedLT := []map[string]string{
@@ -300,7 +300,7 @@ func (s *TableSuite) TestRepoGetItemsByIndexRangeOp(c *C) {
 		},
 	}
 
-	obtainedLT, _ := RepoGetItemsByIndexRangeOp("game_scores", "wins_losts", "8", "LT", []string{"2"})
+	obtainedLT, _ := RepoGetItemsByIndexRangeOp("game_scores_test", "wins_losts", "8", "LT", []string{"2"})
 	c.Check(obtainedLT, DeepEquals, expectedLT)
 
 	expectedLE := []map[string]string{
@@ -327,7 +327,7 @@ func (s *TableSuite) TestRepoGetItemsByIndexRangeOp(c *C) {
 		},
 	}
 
-	obtainedLE, _ := RepoGetItemsByIndexRangeOp("game_scores", "wins_losts", "8", "LE", []string{"2"})
+	obtainedLE, _ := RepoGetItemsByIndexRangeOp("game_scores_test", "wins_losts", "8", "LE", []string{"2"})
 	c.Check(obtainedLE, DeepEquals, expectedLE)
 
 	expectedBETWEEN := []map[string]string{
@@ -340,7 +340,7 @@ func (s *TableSuite) TestRepoGetItemsByIndexRangeOp(c *C) {
 		},
 	}
 
-	obtainedBETWEEN, _ := RepoGetItemsByIndexRangeOp("game_scores", "wins_losts", "8", "BETWEEN", []string{"80", "100"})
+	obtainedBETWEEN, _ := RepoGetItemsByIndexRangeOp("game_scores_test", "wins_losts", "8", "BETWEEN", []string{"80", "100"})
 	c.Check(obtainedBETWEEN, DeepEquals, expectedBETWEEN)
 
 }
@@ -377,7 +377,7 @@ func (s *TableSuite) TestAddItem(c *C) {
 		},
 	}
 
-	status, _ := RepoAddItem("users", "4", item)
+	status, _ := RepoAddItem("users_test", "4", item)
 	c.Check(status, Equals, true)
 
 	expected := map[string]string{
@@ -388,15 +388,15 @@ func (s *TableSuite) TestAddItem(c *C) {
 		"last_name":  "Test_last_name",
 	}
 
-	obtained, _ := RepoGetItemByHash("users", "4")
+	obtained, _ := RepoGetItemByHash("users_test", "4")
 	c.Check(obtained, DeepEquals, expected)
 }
 
 func (s *TableSuite) TestRepoDeleteItem(c *C) {
-	status, _ := RepoDeleteItem("users", "4")
+	status, _ := RepoDeleteItem("users_test", "4")
 	c.Check(status, Equals, true)
 
-	_, err := RepoGetItemByHash("users", "4")
+	_, err := RepoGetItemByHash("users_test", "4")
 	c.Check(err, ErrorMatches, "Item not found")
 }
 
@@ -425,7 +425,7 @@ func (s *TableSuite) TestAddItemHashRange(c *C) {
 		},
 	}
 
-	status, _ := RepoAddItemHashRange("game_scores", "test_hash_value", "1", item)
+	status, _ := RepoAddItemHashRange("game_scores_test", "test_hash_value", "1", item)
 	c.Check(status, Equals, true)
 
 	expected := map[string]string{
@@ -436,14 +436,14 @@ func (s *TableSuite) TestAddItemHashRange(c *C) {
 		"losts":      "333",
 	}
 
-	obtained, _ := RepoGetItemByHashRange("game_scores", "test_hash_value", "1")
+	obtained, _ := RepoGetItemByHashRange("game_scores_test", "test_hash_value", "1")
 	c.Check(obtained, DeepEquals, expected)
 }
 
 func (s *TableSuite) TestRepoDeleteItemWithRange(c *C) {
-	status, _ := RepoDeleteItemWithRange("game_scores", "test_hash_value", "1")
+	status, _ := RepoDeleteItemWithRange("game_scores_test", "test_hash_value", "1")
 	c.Check(status, Equals, true)
 
-	_, err := RepoGetItemByHashRange("game_scores", "test_range_value", "1")
+	_, err := RepoGetItemByHashRange("game_scores_test", "test_range_value", "1")
 	c.Check(err, ErrorMatches, "Item not found")
 }

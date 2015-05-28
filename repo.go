@@ -66,7 +66,7 @@ func RepoGetItemByIndexHash(tableName, indexName, hashValue string) ([]map[strin
 	if err != nil {
 		return nil, err
 	}
-	schema, _ := GetTableDescription(tableName)
+	schema, _ := GetTableDescription(tableName, schema.Tables)
 	index, err := schema.GetIndexByName(indexName)
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func RepoGetItemsByRangeOp(tableName, hashValue, operator string, rangeValue []s
 	if err != nil {
 		return nil, err
 	}
-	schema, _ := GetTableDescription(tableName)
+	schema, _ := GetTableDescription(tableName, schema.Tables)
 
 	var atrrComaparations []dynamodb.AttributeComparison
 	atrrComaparations = buildQueryRange(tableName, schema.PrimaryKey.Hash, hashValue, operator, schema.PrimaryKey.Range, rangeValue)
@@ -104,7 +104,7 @@ func RepoGetItemsByIndexRangeOp(tableName, indexName, hashValue, operator string
 	if err != nil {
 		return nil, err
 	}
-	schema, _ := GetTableDescription(tableName)
+	schema, _ := GetTableDescription(tableName, schema.Tables)
 	index, err := schema.GetIndexByName(indexName)
 	if err != nil {
 		return nil, err
@@ -122,7 +122,7 @@ func RepoGetItemsByIndexRangeOp(tableName, indexName, hashValue, operator string
 }
 
 func RepoDeleteItem(tableName, hash string) (bool, error) {
-	schema, err := GetTableDescription(tableName)
+	schema, err := GetTableDescription(tableName, schema.Tables)
 	if err != nil {
 		return false, err
 	}
@@ -209,7 +209,7 @@ func getDataAsArray(items []map[string]*dynamodb.Attribute) []map[string]string 
 }
 
 func buildQueryRange(tableName, hashName, hashValue, operator, rangeName string, rangeValue []string) []dynamodb.AttributeComparison {
-	schema, _ := GetTableDescription(tableName)
+	schema, _ := GetTableDescription(tableName, schema.Tables)
 	rangeType := schema.GetTypeOfAttribute(rangeName)
 
 	var atrrs1 = make([]dynamodb.Attribute, 1)
@@ -262,7 +262,7 @@ func buildQueryRange(tableName, hashName, hashValue, operator, rangeName string,
 }
 
 func buildQueryHash(tableName, hashName, hashValue string) []dynamodb.AttributeComparison {
-	schema, _ := GetTableDescription(tableName)
+	schema, _ := GetTableDescription(tableName, schema.Tables)
 
 	var atrrs = make([]dynamodb.Attribute, 1)
 	atrrs[0] = dynamodb.Attribute{

@@ -2,14 +2,9 @@ package main
 
 import (
 	"strconv"
-
-	"fmt"
-	"io/ioutil"
-
-	"gopkg.in/yaml.v2"
 )
 
-var dbDescription = DBDescription{
+var dbDescription = DbDescription{
 	Name: "test",
 	Authentication: Authentication{
 		DynamoAuth{
@@ -190,22 +185,13 @@ type data1 struct {
 }
 
 func Bootstrap() {
-	dat, err := ioutil.ReadFile("config.yml")
-	check(err)
-	//fmt.Print(string(dat))
-
-	d := data1{}
-
-	err = yaml.Unmarshal([]byte(dat), &d)
-
-	fmt.Println(d)
 
 	db := Auth("http://127.0.0.1:4567", "key", "secret")
 
 	// cleanup the database
 	DeleteAllTables(db)
 
-	// create tables with example data
+	//create tables with example data
 	tableName := "users"
 	CreateTable(dbDescription.Tables[tableName])
 	for i := range data[tableName] {
@@ -221,4 +207,8 @@ func Bootstrap() {
 		RepoAddItemHashRange(tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
 		AddToElasticSearch(dbDescription.Name, tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
 	}
+}
+
+func LoadSchema() DbDescription {
+	return dbDescription
 }

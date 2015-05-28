@@ -1,14 +1,11 @@
 package main
 
 import (
-	"errors"
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/dynamodb"
 	"log"
 	"strconv"
 	"time"
-
-	//"fmt"
 )
 
 const TIMEOUT = 1 * time.Minute
@@ -38,18 +35,18 @@ func ConvertToDynamo(t TableDescription) dynamodb.TableDescriptionT {
 }
 
 func GetDynamoTable(tableName string) (dynamodb.Table, error) {
-	schema, err := GetTableDescription(tableName)
+	tabDesc, err := GetTableDescription(tableName, schema.Tables)
 	if err != nil {
 		return dynamodb.Table{}, err
 	}
 
-	auth := dbDescription.Authentication.Dynamo
+	auth := schema.Authentication.Dynamo
 	db := Auth(auth.Region, auth.AccessKey, auth.SecretKey)
 
-	tableDescription := ConvertToDynamo(schema)
-	pk, _ := tableDescription.BuildPrimaryKey()
+	dynamoTab := ConvertToDynamo(tabDesc)
+	pk, _ := dynamoTab.BuildPrimaryKey()
 
-	return *db.NewTable(tableDescription.TableName, pk), nil
+	return *db.NewTable(dynamoTab.TableName, pk), nil
 }
 
 func DeleteAllTables(db dynamodb.Server) {
@@ -65,7 +62,7 @@ func DeleteAllTables(db dynamodb.Server) {
 
 func CreateTable(t TableDescription) dynamodb.Table {
 	// get dynamoDB Server
-	dynamAuth := dbDescription.Authentication.Dynamo
+	dynamAuth := schema.Authentication.Dynamo
 	db := Auth(dynamAuth.Region, dynamAuth.AccessKey, dynamAuth.SecretKey)
 
 	// create a new table
@@ -97,15 +94,6 @@ func AddItems(t dynamodb.Table, data [][]dynamodb.Attribute, hashKeys []string) 
 			}
 		}
 	}
-}
-
-func GetTableDescription(tableName string) (TableDescription, error) {
-	if dbDescription.Tables[tableName].Name != "" {
-		return dbDescription.Tables[tableName], nil
-	} else {
-		return TableDescription{}, errors.New("Table " + tableName + " not found.")
-	}
-
 }
 
 func waitUntilTableDeleted(db dynamodb.Server, t *dynamodb.Table, tableName string) {

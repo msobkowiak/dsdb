@@ -228,7 +228,7 @@ func secondaryIndexSearch(index, rangeOperator, hashKey, rangeValue []string, ta
 }
 
 func getItemsByHash(table, hash string, w http.ResponseWriter) {
-	schema, err := GetTableDescription(table)
+	schema, err := GetTableDescription(table, schema.Tables)
 	if err != nil {
 		writeErrorResponse("Table "+table+" not found.", 404, w)
 	}

@@ -11,16 +11,18 @@ import (
 func Test(t *testing.T) { TestingT(t) }
 
 type TableSuite struct {
-	Db       DBDescription
+	Db       DbDescription
 	Data     map[string][][]dynamodb.Attribute
 	HashKeys map[string][]string
 }
 
 func (s *TableSuite) SetUpSuite(c *C) {
-	users := CreateTable(table_suite.Db.Tables["users"])
-	games := CreateTable(table_suite.Db.Tables["game_scores"])
-	AddItems(users, table_suite.Data["users"], nil)
-	AddItems(games, table_suite.Data["game_scores"], table_suite.HashKeys["game_scores"])
+	schema = table_suite.Db
+
+	users := CreateTable(table_suite.Db.Tables["users_test"])
+	games := CreateTable(table_suite.Db.Tables["game_scores_test"])
+	AddItems(users, table_suite.Data["users_test"], nil)
+	AddItems(games, table_suite.Data["game_scores_test"], table_suite.HashKeys["game_scores_test"])
 }
 
 func (s *TableSuite) TearDownSuite(c *C) {
@@ -31,7 +33,7 @@ func (s *TableSuite) TearDownSuite(c *C) {
 
 var table_suite = &TableSuite{
 
-	Db: DBDescription{
+	Db: DbDescription{
 		Name: "test",
 		Authentication: Authentication{
 			DynamoAuth{
@@ -41,8 +43,8 @@ var table_suite = &TableSuite{
 			},
 		},
 		Tables: map[string]TableDescription{
-			"users": TableDescription{
-				Name: "users",
+			"users_test": TableDescription{
+				Name: "users_test",
 				Attributes: []AttributeDefinition{
 					AttributeDefinition{"id", "N", true},
 					AttributeDefinition{"email", "S", true},
@@ -64,16 +66,9 @@ var table_suite = &TableSuite{
 						Hash: "country",
 					},
 				},
-				Authentication: Authentication{
-					DynamoAuth{
-						Region:    "http://127.0.0.1:4567",
-						AccessKey: "access",
-						SecretKey: "secret",
-					},
-				},
 			},
-			"game_scores": TableDescription{
-				Name: "game_scores",
+			"game_scores_test": TableDescription{
+				Name: "game_scores_test",
 				Attributes: []AttributeDefinition{
 					AttributeDefinition{"user_id", "N", true},
 					AttributeDefinition{"game_title", "S", true},
@@ -93,18 +88,11 @@ var table_suite = &TableSuite{
 						Range: "losts",
 					},
 				},
-				Authentication: Authentication{
-					DynamoAuth{
-						Region:    "http://127.0.0.1:4567",
-						AccessKey: "access",
-						SecretKey: "secret",
-					},
-				},
 			},
 		},
 	},
 	Data: map[string][][]dynamodb.Attribute{
-		"users": [][]dynamodb.Attribute{
+		"users_test": [][]dynamodb.Attribute{
 			[]dynamodb.Attribute{
 				*dynamodb.NewStringAttribute("first_name", "Monika"),
 				*dynamodb.NewStringAttribute("last_name", "Sobkowiak"),
@@ -124,7 +112,7 @@ var table_suite = &TableSuite{
 				*dynamodb.NewStringAttribute("country", "Portugal"),
 			},
 		},
-		"game_scores": [][]dynamodb.Attribute{
+		"game_scores_test": [][]dynamodb.Attribute{
 			[]dynamodb.Attribute{
 				*dynamodb.NewNumericAttribute("top_score", "582"),
 				*dynamodb.NewNumericAttribute("wins", "8"),
@@ -148,7 +136,7 @@ var table_suite = &TableSuite{
 		},
 	},
 	HashKeys: map[string][]string{
-		"game_scores": []string{
+		"game_scores_test": []string{
 			"Game X",
 			"Game Y",
 			"Game Y",
@@ -175,7 +163,7 @@ func (s *TableSuite) TestAuth(c *C) {
 
 func (s *TableSuite) TestConvertToDynamo(c *C) {
 	var expected = dynamodb.TableDescriptionT{
-		TableName: "users",
+		TableName: "users_test",
 		AttributeDefinitions: []dynamodb.AttributeDefinitionT{
 			dynamodb.AttributeDefinitionT{"id", "N"},
 			dynamodb.AttributeDefinitionT{"email", "S"},
@@ -214,7 +202,7 @@ func (s *TableSuite) TestConvertToDynamo(c *C) {
 		},
 	}
 
-	obtained := ConvertToDynamo(table_suite.Db.Tables["users"])
+	obtained := ConvertToDynamo(table_suite.Db.Tables["users_test"])
 
 	c.Check(obtained, DeepEquals, expected)
 }
@@ -225,7 +213,7 @@ func (s *TableSuite) TestGetDynamoTable(c *C) {
 			Auth:   aws.Auth{AccessKey: "access", SecretKey: "secret"},
 			Region: aws.Region{DynamoDBEndpoint: "http://127.0.0.1:4567"},
 		},
-		Name: "users",
+		Name: "users_test",
 		Key: dynamodb.PrimaryKey{
 			KeyAttribute: &dynamodb.Attribute{
 				Type: "N",
@@ -233,7 +221,7 @@ func (s *TableSuite) TestGetDynamoTable(c *C) {
 			},
 		},
 	}
-	obtained, _ := GetDynamoTable("users")
+	obtained, _ := GetDynamoTable("users_test")
 
 	c.Check(obtained, DeepEquals, expected)
 

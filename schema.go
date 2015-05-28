@@ -4,7 +4,7 @@ import (
 	"errors"
 )
 
-type DBDescription struct {
+type DbDescription struct {
 	Name           string
 	Authentication Authentication
 	Tables         map[string]TableDescription
@@ -77,4 +77,12 @@ func (t TableDescription) GetIndexByName(name string) (SecondaryIndexDefinition,
 	}
 
 	return SecondaryIndexDefinition{}, errors.New("Index not found")
+}
+
+func GetTableDescription(tableName string, tables map[string]TableDescription) (TableDescription, error) {
+	if tables[tableName].Name != "" {
+		return tables[tableName], nil
+	} else {
+		return TableDescription{}, errors.New("Table " + tableName + " not found.")
+	}
 }
