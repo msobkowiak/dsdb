@@ -4,59 +4,6 @@ import (
 	"strconv"
 )
 
-var dbDescription = DbDescription{
-	Name: "test",
-	Authentication: Authentication{
-		DynamoAuth{
-			Region:    "http://127.0.0.1:4567",
-			AccessKey: "access",
-			SecretKey: "secret",
-		},
-	},
-	Tables: map[string]TableDescription{
-		"users": TableDescription{
-			Name: "users",
-			Attributes: []AttributeDefinition{
-				AttributeDefinition{"id", "N", true},
-				AttributeDefinition{"email", "S", true},
-			},
-			PrimaryKey: PrimaryKeyDefinition{
-				Type: "HASH",
-				Hash: "id",
-			},
-			SecondaryIndexes: []SecondaryIndexDefinition{
-				SecondaryIndexDefinition{
-					Name: "email",
-					Type: "HASH",
-					Hash: "email",
-				},
-			},
-		},
-		"game_scores": TableDescription{
-			Name: "game_scores",
-			Attributes: []AttributeDefinition{
-				AttributeDefinition{"user_id", "N", true},
-				AttributeDefinition{"game_title", "S", true},
-				AttributeDefinition{"wins", "N", true},
-				AttributeDefinition{"losts", "N", true},
-			},
-			PrimaryKey: PrimaryKeyDefinition{
-				Type:  "RANGE",
-				Hash:  "game_title",
-				Range: "user_id",
-			},
-			SecondaryIndexes: []SecondaryIndexDefinition{
-				SecondaryIndexDefinition{
-					Name:  "wins_losts",
-					Type:  "RANGE",
-					Hash:  "wins",
-					Range: "losts",
-				},
-			},
-		},
-	},
-}
-
 var data = map[string][][]Attribute{
 	"users": [][]Attribute{
 		[]Attribute{
@@ -184,9 +131,9 @@ type data1 struct {
 	}
 }
 
-func Bootstrap() {
-
-	db := Auth("http://127.0.0.1:4567", "key", "secret")
+func Bootstrap(dbDescription DbDescription) {
+	auth := dbDescription.Authentication.Dynamo
+	db := Auth(auth.Region, auth.AccessKey, auth.SecretKey)
 
 	// cleanup the database
 	DeleteAllTables(db)
@@ -197,7 +144,7 @@ func Bootstrap() {
 	for i := range data[tableName] {
 		hash := strconv.FormatInt(int64(i+1), 10)
 		RepoAddItem(tableName, hash, data[tableName][i])
-		AddToElasticSearch(dbDescription.Name, tableName, hash, "", data[tableName][i])
+		AddToElasticSearch(tableName, tableName, hash, "", data[tableName][i])
 	}
 
 	tableName = "game_scores"
@@ -205,10 +152,6 @@ func Bootstrap() {
 	for i := range data[tableName] {
 		rangeValue := strconv.FormatInt(int64(i+1), 10)
 		RepoAddItemHashRange(tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
-		AddToElasticSearch(dbDescription.Name, tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
+		AddToElasticSearch(tableName, tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
 	}
-}
-
-func LoadSchema() DbDescription {
-	return dbDescription
 }

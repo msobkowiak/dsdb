@@ -7,13 +7,10 @@ import (
 
 var schema DbDescription
 
-// func LoadSchema() DbDescription {
-// 	return dbDescription
-// }
-
 func main() {
-	schema = LoadSchema()
-	Bootstrap()
+	schema = LoadSchema("config.yml")
+
+	Bootstrap(schema)
 	router := NewRouter()
 
 	log.Fatal(http.ListenAndServe(":8080", router))

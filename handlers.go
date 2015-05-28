@@ -115,7 +115,7 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 	item := convertDataToAttrubute(data)
 
 	t, _ := RepoAddItem(table, hashKey, item)
-	AddToElasticSearch(dbDescription.Name, table, hashKey, "", item)
+	AddToElasticSearch(table, table, hashKey, "", item)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
@@ -148,7 +148,7 @@ func AddItemHashRange(w http.ResponseWriter, r *http.Request) {
 	item := convertDataToAttrubute(data)
 
 	t, _ := RepoAddItemHashRange(table, hashKey, rangeKey, item)
-	AddToElasticSearch(dbDescription.Name, table, hashKey, rangeKey, item)
+	AddToElasticSearch(table, table, hashKey, rangeKey, item)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
