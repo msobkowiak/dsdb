@@ -12,6 +12,8 @@ func (s *TableSuite) TestHasRange(c *C) {
 func (s *TableSuite) TestGetTypeOfAttribute(c *C) {
 	c.Check(table_suite.Db.Tables["users_test"].GetTypeOfAttribute("id"), Equals, "N")
 	c.Check(table_suite.Db.Tables["users_test"].GetTypeOfAttribute("email"), Equals, "S")
+	c.Check(table_suite.Db.Tables["game_scores_test"].GetTypeOfAttribute("wins"), Equals, "N")
+	c.Check(table_suite.Db.Tables["users_test"].GetTypeOfAttribute("not_existed_atrr"), Equals, "S")
 }
 
 func (s *TableSuite) TestGetIndexByName(c *C) {

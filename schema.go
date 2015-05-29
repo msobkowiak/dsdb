@@ -66,7 +66,8 @@ func (t TableDescription) GetTypeOfAttribute(name string) string {
 		}
 	}
 
-	return ""
+	// Return the defualt value
+	return "S"
 }
 
 func (t TableDescription) GetIndexByName(name string) (SecondaryIndexDefinition, error) {

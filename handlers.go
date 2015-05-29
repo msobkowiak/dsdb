@@ -9,12 +9,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type Data struct {
-	Name  string
-	Value string
-	Type  string
-}
-
 func GetAllItems(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	table := vars["table"]
@@ -103,7 +97,7 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	var data []Data
+	var data map[string]string
 	if err := json.Unmarshal(body, &data); err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
@@ -137,7 +131,8 @@ func AddItemHashRange(w http.ResponseWriter, r *http.Request) {
 	if err := r.Body.Close(); err != nil {
 		panic(err)
 	}
-	var data []Data
+
+	var data map[string]string
 	if err := json.Unmarshal(body, &data); err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
@@ -182,16 +177,17 @@ func AddItemHashRange(w http.ResponseWriter, r *http.Request) {
 	}
 }*/
 
-func convertDataToAttrubute(data []Data) []Attribute {
+func convertDataToAttrubute(data map[string]string) []Attribute {
 	item := make([]Attribute, len(data))
-	for i := range data {
-		item[i] = Attribute{
+	count := 0
+	for key := range data {
+		item[count] = Attribute{
 			Description: AttributeDefinition{
-				Name: data[i].Name,
-				Type: data[i].Type,
+				Name: key,
 			},
-			Value: data[i].Value,
+			Value: data[key],
 		}
+		count++
 	}
 
 	return item

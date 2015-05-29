@@ -10,7 +10,10 @@ tables:
         name: "users"
         attributes:
             - { name: "id", type: "N", required: true }
+            - { name: "first_name", type: "S", required: false }
+            - { name: "last_name", type: "S", required: false }
             - { name: "email", type: "S", required: true }
+            - { name: "country", type: "S", required: false }
         primary_key:
             type: "HASH"
             hash: "id"
@@ -21,6 +24,7 @@ tables:
         attributes:
             - { name: "user_id", type: "N", required: true }
             - { name: "game_title", type: "S", required: true }
+            - { name: "top_score", type: "N", required: false }
             - { name: "wins", type: "N", required: true }
             - { name: "losts", type: "N", required: true }
         primary_key:

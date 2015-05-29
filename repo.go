@@ -148,31 +148,34 @@ func RepoDeleteItemWithRange(tableName, hashKey, rangeKey string) (bool, error) 
 	return status, nil
 }
 
-/*
-[
-	{"Description": {"Name": "first_name", "Type": "S"}, "Value": "monika"},
-	{"Description": {"Name": "email", "Type": "S"}, "Value": "monika@example.pl"},
-	{"Description": {"Name": "last_name", "Type": "S"}, "Value": "Nowak"},
-	{"Description": {"Name": "counrty", "Type": "S"}, "Value": "Poland"}
-]
-*/
 func RepoAddItem(tableName, hash string, item []Attribute) (bool, error) {
+	t, err := GetTableDescription(tableName, schema.Tables)
+	if err != nil {
+		return false, err
+	}
+
 	table, err := GetDynamoTable(tableName)
 	if err != nil {
 		return false, err
 	}
 	var attr = make([]dynamodb.Attribute, len(item))
 	for i := range item {
+		name := item[i].Description.Name
 		attr[i] = dynamodb.Attribute{
-			Type:  item[i].Description.Type,
-			Name:  item[i].Description.Name,
+			Type:  t.GetTypeOfAttribute(name),
+			Name:  name,
 			Value: item[i].Value,
 		}
 	}
+
 	return table.PutItem(hash, "", attr)
 }
 
 func RepoAddItemHashRange(tableName, hashKey, rangeKey string, item []Attribute) (bool, error) {
+	t, err := GetTableDescription(tableName, schema.Tables)
+	if err != nil {
+		return false, err
+	}
 	table, err := GetDynamoTable(tableName)
 	if err != nil {
 		return false, err
@@ -180,12 +183,14 @@ func RepoAddItemHashRange(tableName, hashKey, rangeKey string, item []Attribute)
 
 	var attr = make([]dynamodb.Attribute, len(item))
 	for i := range item {
+		name := item[i].Description.Name
 		attr[i] = dynamodb.Attribute{
-			Type:  item[i].Description.Type,
+			Type:  t.GetTypeOfAttribute(name),
 			Name:  item[i].Description.Name,
 			Value: item[i].Value,
 		}
 	}
+
 	return table.PutItem(hashKey, rangeKey, attr)
 }
 
