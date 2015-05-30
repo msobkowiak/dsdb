@@ -33,3 +33,5 @@ tables:
             range: "user_id"
         secondary_indexes:
             - { name: "wins_losts", type: "RANGE", hash: "wins", range: "losts" }
+        full_text_search:
+            - { field: "game_title", query: "game brown fox", operator: "and", precision: "75%"}

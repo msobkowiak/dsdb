@@ -101,33 +101,20 @@ var data = map[string][][]Attribute{
 
 var hashKeys = map[string][]string{
 	"game_scores": []string{
+		"Game Brown Fox",
+		"Game Green Fox",
+		"Game X",
+		"Game Brown",
+		"Game Green",
+		"Game Fox",
 		"Game X",
 		"Game Y",
-		"Game X",
-		"Game Z",
-		"Game X",
-		"Game Y",
-		"Game Y",
-		"Game Z",
 	},
 }
 
 func check(e error) {
 	if e != nil {
 		panic(e)
-	}
-}
-
-type data1 struct {
-	Database_name     string
-	Dynamo_region     string
-	Dynamo_access_key string
-	Dynamo_secret_key string
-	Tables            []struct {
-		Name              string
-		Attributes        []AttributeDefinition
-		Primary_key       PrimaryKeyDefinition
-		Secondary_indexes []SecondaryIndexDefinition
 	}
 }
 

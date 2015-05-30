@@ -15,6 +15,7 @@ type TableDescription struct {
 	Attributes       []AttributeDefinition
 	PrimaryKey       PrimaryKeyDefinition
 	SecondaryIndexes []SecondaryIndexDefinition
+	FullTextSearch   []TextSearch
 }
 
 type AttributeDefinition struct {
@@ -49,6 +50,13 @@ type DynamoAuth struct {
 	Region    string
 	AccessKey string
 	SecretKey string
+}
+
+type TextSearch struct {
+	Field     string
+	Query     string
+	Operator  string
+	Precision string
 }
 
 func (t TableDescription) HasRange() bool {

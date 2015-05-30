@@ -48,19 +48,31 @@ func Search(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	queryParams := r.URL.Query()
 
-	searchType := queryParams["search_type"]
-	index := queryParams["index"]
-	hashKey := queryParams["hash"]
-	rangeOperator := queryParams["range_operator"]
-	rangeValue := queryParams["range_value"]
-
 	table := vars["table"]
+	searchType := getValue(queryParams["search_type"])
 
-	if searchType[0] == "index" {
+	switch searchType {
+	case "index":
+
+		index := queryParams["index"]
+		hashKey := queryParams["hash"]
+		rangeOperator := queryParams["range_operator"]
+		rangeValue := queryParams["range_value"]
+
 		if index[0] == "primary" {
 			primaryKeySearch(rangeOperator, hashKey, rangeValue, table, w)
 		} else {
 			secondaryIndexSearch(index, rangeOperator, hashKey, rangeValue, table, w)
+		}
+	case "text":
+		field := getValue(queryParams["field"])
+		query := getValue(queryParams["query"])
+
+		if field != "" && query != "" {
+			data, err := FullTextSearchQuery(table, field, query, getValue(queryParams["operator"]), getValue(queryParams["precision"]))
+			writeCollectionResponse(data, err, w)
+		} else {
+			writeErrorResponse("Missing search parameters", 404, w)
 		}
 	}
 }
@@ -281,4 +293,12 @@ func writeErrorResponse(message string, statusCode int, w http.ResponseWriter) {
 	}
 	w.WriteHeader(http.StatusNotFound)
 	json.NewEncoder(w).Encode(err)
+}
+
+func getValue(queryParams []string) string {
+	if queryParams != nil {
+		return queryParams[0]
+	}
+
+	return ""
 }
