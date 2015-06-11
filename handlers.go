@@ -53,7 +53,6 @@ func Search(w http.ResponseWriter, r *http.Request) {
 
 	switch searchType {
 	case "index":
-
 		index := queryParams["index"]
 		hashKey := queryParams["hash"]
 		rangeOperator := queryParams["range_operator"]
@@ -73,6 +72,16 @@ func Search(w http.ResponseWriter, r *http.Request) {
 			writeCollectionResponse(data, err, w)
 		} else {
 			writeErrorResponse("Missing search parameters", 404, w)
+		}
+	case "faced":
+		field := getValue(queryParams["field"])
+		metric := getValue(queryParams["metric"])
+		if metric == "stats" || metric == "extended_stats" {
+			data, err := AggregationStatsSearch(table, field, metric)
+			writeSingleFloatResponse(data, err, w)
+		} else {
+			data, err := AggregationSearch(table, field, metric)
+			writeSingleFloatResponse(data, err, w)
 		}
 	}
 }
@@ -164,31 +173,6 @@ func AddItemHashRange(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*func TodoCreate(w http.ResponseWriter, r *http.Request) {
-	var todo Todo
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
-	if err != nil {
-		panic(err)
-	}
-	if err := r.Body.Close(); err != nil {
-		panic(err)
-	}
-	if err := json.Unmarshal(body, &todo); err != nil {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(422) // unprocessable entity
-		if err := json.NewEncoder(w).Encode(err); err != nil {
-			panic(err)
-		}
-	}
-
-	t := RepoCreateTodo(todo)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(t); err != nil {
-		panic(err)
-	}
-}*/
-
 func convertDataToAttrubute(data map[string]string) []Attribute {
 	item := make([]Attribute, len(data))
 	count := 0
@@ -256,6 +240,17 @@ func getItemsByIndexHash(table, indexName, hash string, w http.ResponseWriter) {
 }
 
 func writeSingleItemResponse(data map[string]string, err error, w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(GetErrorMsg(err, 404))
+	} else {
+		w.WriteHeader(http.StatusFound)
+		json.NewEncoder(w).Encode(data)
+	}
+}
+
+func writeSingleFloatResponse(data map[string]float64, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)

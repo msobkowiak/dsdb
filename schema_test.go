@@ -28,3 +28,24 @@ func (s *TableSuite) TestGetIndexByName(c *C) {
 	c.Check(obtained, DeepEquals, expexted)
 	c.Check(err, ErrorMatches, "Index not found")
 }
+
+func (s *TableSuite) TestGetHashName(c *C) {
+	expected := "id"
+	obtained, _ := GetHashName("users_test", table_suite.Db)
+	c.Check(obtained, Equals, expected)
+
+	_, err := GetHashName("not_existet_table", table_suite.Db)
+	c.Check(err, ErrorMatches, "Table not_existet_table not found.")
+}
+
+func (s *TableSuite) TestGetRangeName(c *C) {
+	expected := "user_id"
+	obtained, _ := GetRangeName("game_scores_test", table_suite.Db)
+	c.Check(obtained, Equals, expected)
+
+	obtained, _ = GetRangeName("users_test", table_suite.Db)
+	c.Check(obtained, Equals, "")
+
+	_, err := GetHashName("not_existet_table", table_suite.Db)
+	c.Check(err, ErrorMatches, "Table not_existet_table not found.")
+}

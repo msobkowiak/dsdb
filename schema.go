@@ -95,3 +95,21 @@ func GetTableDescription(tableName string, tables map[string]TableDescription) (
 		return TableDescription{}, errors.New("Table " + tableName + " not found.")
 	}
 }
+
+func GetHashName(tableName string, schema DbDescription) (string, error) {
+	table, err := GetTableDescription(tableName, schema.Tables)
+	if err != nil {
+		return "", err
+	}
+
+	return table.PrimaryKey.Hash, nil
+}
+
+func GetRangeName(tableName string, schema DbDescription) (string, error) {
+	table, err := GetTableDescription(tableName, schema.Tables)
+	if err != nil {
+		return "", err
+	}
+
+	return table.PrimaryKey.Range, nil
+}
