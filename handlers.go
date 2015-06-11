@@ -76,13 +76,8 @@ func Search(w http.ResponseWriter, r *http.Request) {
 	case "faced":
 		field := getValue(queryParams["field"])
 		metric := getValue(queryParams["metric"])
-		if metric == "stats" || metric == "extended_stats" {
-			data, err := AggregationStatsSearch(table, field, metric)
-			writeSingleFloatResponse(data, err, w)
-		} else {
-			data, err := AggregationSearch(table, field, metric)
-			writeSingleFloatResponse(data, err, w)
-		}
+		data, err := AggregationSearch(table, field, metric)
+		writeSingleFloatResponse(data, err, w)
 	}
 }
 

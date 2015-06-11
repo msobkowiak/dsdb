@@ -130,6 +130,11 @@ func AggregationSearch(index, field, metric string) (map[string]float64, error) 
 		return nil, err
 	}
 
+	ok, err := isCalculable(index, metric, field)
+	if !ok {
+		return nil, err
+	}
+
 	allQuery := elastic.NewMatchAllQuery()
 	builder := client.Search().
 		Index(index).
@@ -146,50 +151,20 @@ func AggregationSearch(index, field, metric string) (map[string]float64, error) 
 		return nil, err
 	}
 
-	var res struct {
-		Value float64
-	}
-	err = json.Unmarshal(*aggResult, &res)
-	if err != nil {
-		return nil, err
-	}
+	var result = map[string]float64{}
+	json.Unmarshal(*aggResult, &result)
 
-	var result = make(map[string]float64, 1)
-	result[metric] = round(res.Value, 2)
+	if metric == "stats" || metric == "extended_stats" {
+		for i := range result {
+			result[i] = round(result[i], 2)
+		}
+	} else {
+		var res = map[string]float64{}
+		res[metric] = round(result["value"], 2)
+		result = res
+	}
 
 	return result, nil
-}
-
-func AggregationStatsSearch(index, field, metric string) (map[string]float64, error) {
-	log.Println(metric)
-	client, err := elastic.NewClient()
-	if err != nil {
-		return nil, err
-	}
-
-	allQuery := elastic.NewMatchAllQuery()
-	builder := client.Search().
-		Index(index).
-		Query(&allQuery)
-
-	builder, err = decorate(metric, field, builder)
-	if err != nil {
-		return nil, err
-	}
-
-	searchResult, _ := builder.Do()
-	aggResult, _ := searchResult.Aggregations[metric]
-	if err != nil {
-		return nil, err
-	}
-
-	var stats = make(map[string]float64, 8)
-	json.Unmarshal(*aggResult, &stats)
-
-	for res := range stats {
-		stats[res] = round(stats[res], 2)
-	}
-	return stats, nil
 }
 
 func decorate(metric, field string, builder *elastic.SearchService) (*elastic.SearchService, error) {
@@ -260,4 +235,20 @@ func round(val float64, places int) float64 {
 	}
 
 	return round / pow
+}
+
+func isCalculable(index, metric, field string) (bool, error) {
+	if metric != "count" {
+		table, err := GetTableDescription(index, schema.Tables)
+		if err != nil {
+			return false, err
+		}
+
+		metricType := table.GetTypeOfAttribute(field)
+		if metricType != "N" {
+			return false, errors.New("Not possible to calculate metric " + metric + " non numeric filed")
+		}
+	}
+
+	return true, nil
 }
