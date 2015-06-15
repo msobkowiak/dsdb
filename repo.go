@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/goamz/goamz/dynamodb"
+	"strconv"
 )
 
 func RepoGetAllItems(tableName string) ([]map[string]string, error) {
@@ -164,7 +165,7 @@ func RepoAddItem(tableName, hash string, item []Attribute) (bool, error) {
 		attr[i] = dynamodb.Attribute{
 			Type:  t.GetTypeOfAttribute(name),
 			Name:  name,
-			Value: item[i].Value,
+			Value: getStringValue(item[i].Value),
 		}
 	}
 
@@ -187,7 +188,7 @@ func RepoAddItemHashRange(tableName, hashKey, rangeKey string, item []Attribute)
 		attr[i] = dynamodb.Attribute{
 			Type:  t.GetTypeOfAttribute(name),
 			Name:  item[i].Description.Name,
-			Value: item[i].Value,
+			Value: getStringValue(item[i].Value),
 		}
 	}
 
@@ -308,4 +309,19 @@ func deleteItems(tableName, hash string, schema TableDescription) (bool, error) 
 	}
 
 	return true, nil
+}
+
+func getStringValue(itemValue interface{}) string {
+	var value string
+
+	switch itemValue.(type) {
+	case string:
+		value = itemValue.(string)
+	case int64:
+		value = string(itemValue.(int64))
+	case float64:
+		value = strconv.FormatFloat(itemValue.(float64), 'f', 8, 64)
+	}
+
+	return value
 }

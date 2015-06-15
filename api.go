@@ -15,6 +15,7 @@ func main() {
 	Bootstrap(schema)
 
 	fmt.Println("Done creating tables...")
+	GeoSearch()
 
 	router := NewRouter()
 

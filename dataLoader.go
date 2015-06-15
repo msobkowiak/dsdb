@@ -37,7 +37,6 @@ func LoadSchema(filePath string) DbDescription {
 			Attributes:       table.Attributes,
 			PrimaryKey:       table.Primary_key,
 			SecondaryIndexes: table.Secondary_indexes,
-			FullTextSearch:   table.Full_text_search,
 		}
 	}
 

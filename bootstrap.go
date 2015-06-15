@@ -57,44 +57,88 @@ var data = map[string][][]Attribute{
 	},
 	"game_scores": [][]Attribute{
 		[]Attribute{
-			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: "123"},
-			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: "20"},
-			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: "0"},
+			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: 123},
+			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: 20},
+			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: 0},
 		},
 		[]Attribute{
-			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: "333"},
-			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: "90"},
-			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: "21"},
+			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: 333},
+			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: 90},
+			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: 21},
 		},
 		[]Attribute{
-			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: "444"},
-			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: "99"},
-			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: "59"},
+			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: 444},
+			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: 99},
+			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: 59},
 		},
 		[]Attribute{
-			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: "555"},
-			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: "12"},
-			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: "9"},
+			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: 555},
+			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: 12},
+			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: 9},
 		},
 		[]Attribute{
-			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: "666"},
-			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: "7"},
-			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: "20"},
+			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: 666},
+			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: 7},
+			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: 20},
 		},
 		[]Attribute{
-			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: "122"},
-			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: "20"},
-			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: "7"},
+			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: 122},
+			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: 20},
+			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: 7},
 		},
 		[]Attribute{
-			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: "777"},
-			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: "190"},
-			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: "87"},
+			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: 777},
+			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: 190},
+			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: 87},
 		},
 		[]Attribute{
-			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: "888"},
-			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: "438"},
-			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: "164"},
+			Attribute{Description: AttributeDefinition{Name: "top_score", Type: "N"}, Value: 888},
+			Attribute{Description: AttributeDefinition{Name: "wins", Type: "N"}, Value: 438},
+			Attribute{Description: AttributeDefinition{Name: "losts", Type: "N"}, Value: 164},
+		},
+	},
+	"restaurants": [][]Attribute{
+		[]Attribute{
+			Attribute{Description: AttributeDefinition{Name: "name", Type: "S"}, Value: "Portuguese Food"},
+			Attribute{Description: AttributeDefinition{Name: "lat", Type: "N"}, Value: 41.158915},
+			Attribute{Description: AttributeDefinition{Name: "long", Type: "N"}, Value: -8.6191053},
+			Attribute{Description: AttributeDefinition{Name: "descripion", Type: "S"}, Value: "The best tradicional portugues restaurant in town. Our speciality is cotfish!"},
+		},
+		[]Attribute{
+			Attribute{Description: AttributeDefinition{Name: "name", Type: "S"}, Value: "Italian Food"},
+			Attribute{Description: AttributeDefinition{Name: "lat", Type: "N"}, Value: 41.158915},
+			Attribute{Description: AttributeDefinition{Name: "long", Type: "N"}, Value: -8.631091},
+			Attribute{Description: AttributeDefinition{Name: "descripion", Type: "S"}, Value: "The best tradicional italian passta restaurant in town."},
+		},
+		[]Attribute{
+			Attribute{Description: AttributeDefinition{Name: "name", Type: "S"}, Value: "Pasta Cafe"},
+			Attribute{Description: AttributeDefinition{Name: "lat", Type: "N"}, Value: 41.159238},
+			Attribute{Description: AttributeDefinition{Name: "long", Type: "N"}, Value: -8.621091},
+			Attribute{Description: AttributeDefinition{Name: "descripion", Type: "S"}, Value: "The best tradicional portugues restaurant in town. Our speciality: pasta, pasta, pasta!"},
+		},
+		[]Attribute{
+			Attribute{Description: AttributeDefinition{Name: "name", Type: "S"}, Value: "Pasta Cafe1"},
+			Attribute{Description: AttributeDefinition{Name: "lat", Type: "N"}, Value: 41.154941},
+			Attribute{Description: AttributeDefinition{Name: "long", Type: "N"}, Value: -8.638},
+			Attribute{Description: AttributeDefinition{Name: "descripion", Type: "S"}, Value: "The best tradicional portugues restaurant in town. Our speciality: pasta, pasta, pasta!"},
+		},
+		[]Attribute{
+			Attribute{Description: AttributeDefinition{Name: "name", Type: "S"}, Value: "Pasta Cafe2"},
+			Attribute{Description: AttributeDefinition{Name: "lat", Type: "N"}, Value: 41.15002},
+			Attribute{Description: AttributeDefinition{Name: "long", Type: "N"}, Value: -8.635297},
+			Attribute{Description: AttributeDefinition{Name: "descripion", Type: "S"}, Value: "The best tradicional portugues restaurant in town. Our speciality: pasta, pasta, pasta!"},
+		},
+		[]Attribute{
+			Attribute{Description: AttributeDefinition{Name: "name", Type: "S"}, Value: "Pasta Cafe3"},
+			Attribute{Description: AttributeDefinition{Name: "lat", Type: "N"}, Value: 41.147832},
+			Attribute{Description: AttributeDefinition{Name: "long", Type: "N"}, Value: -8.611693},
+			Attribute{Description: AttributeDefinition{Name: "descripion", Type: "S"}, Value: "The best tradicional portugues restaurant in town. Our speciality: pasta, pasta, pasta!"},
+		},
+		[]Attribute{
+			Attribute{Description: AttributeDefinition{Name: "name", Type: "S"}, Value: "Pasta Cafe4"},
+			Attribute{Description: AttributeDefinition{Name: "lat", Type: "N"}, Value: 41.147379},
+			Attribute{Description: AttributeDefinition{Name: "long", Type: "N"}, Value: -8.605642},
+			Attribute{Description: AttributeDefinition{Name: "descripion", Type: "S"}, Value: "The best tradicional portugues restaurant in town. Our speciality: pasta, pasta, pasta!"},
 		},
 	},
 }
@@ -140,5 +184,13 @@ func Bootstrap(dbDescription DbDescription) {
 		rangeValue := strconv.FormatInt(int64(i+1), 10)
 		RepoAddItemHashRange(tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
 		AddToElasticSearch(tableName, tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
+	}
+
+	tableName = "restaurants"
+	CreateTable(dbDescription.Tables[tableName])
+	for i := range data[tableName] {
+		hash := strconv.FormatInt(int64(i+1), 10)
+		RepoAddItem(tableName, hash, data[tableName][i])
+		AddToElasticSearch(tableName, tableName, hash, "", data[tableName][i])
 	}
 }

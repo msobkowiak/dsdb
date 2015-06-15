@@ -26,7 +26,7 @@ func ConvertToDynamo(t TableDescription) dynamodb.TableDescriptionT {
 		TableName: t.Name,
 	}
 
-	addAttrubuteDefinition(&table, t.Attributes)
+	addAttributeDefinition(&table, t)
 	addPrimaryKey(&table, t.PrimaryKey, t.Attributes)
 	addSecondaryIndexes(&table, t.SecondaryIndexes, t.Attributes)
 	addThroughput(&table)
@@ -204,7 +204,8 @@ func existsInAttributes(attrs []AttributeDefinition, keyName string) bool {
 	return false
 }
 
-func addAttrubuteDefinition(table *dynamodb.TableDescriptionT, attrs []AttributeDefinition) {
+func addAttributeDefinition(table *dynamodb.TableDescriptionT, schemaTable TableDescription) {
+	attrs := ExcludeNonKeyAttributes(schemaTable)
 	table.AttributeDefinitions = make([]dynamodb.AttributeDefinitionT, len(attrs))
 	for i := range attrs {
 		table.AttributeDefinitions[i] = dynamodb.AttributeDefinitionT{attrs[i].Name, attrs[i].Type}

@@ -49,3 +49,33 @@ func (s *TableSuite) TestGetRangeName(c *C) {
 	_, err := GetHashName("not_existet_table", table_suite.Db)
 	c.Check(err, ErrorMatches, "Table not_existet_table not found.")
 }
+
+func (s *TableSuite) TestExcludeNonKeyAttributes(c *C) {
+	expected := []AttributeDefinition{
+		AttributeDefinition{Name: "attr1", Type: "S", Required: false},
+		AttributeDefinition{Name: "attr2", Type: "N", Required: true},
+		AttributeDefinition{Name: "attr3", Type: "S", Required: true},
+		AttributeDefinition{Name: "attr4", Type: "S", Required: true},
+	}
+
+	testData := TableDescription{
+		Attributes: []AttributeDefinition{
+			AttributeDefinition{Name: "id", Type: "N", Required: true},
+			AttributeDefinition{Name: "attr1", Type: "S", Required: false},
+			AttributeDefinition{Name: "attr2", Type: "N", Required: true},
+			AttributeDefinition{Name: "attr3", Type: "S", Required: true},
+			AttributeDefinition{Name: "attr4", Type: "S", Required: true},
+		},
+		PrimaryKey: PrimaryKeyDefinition{
+			Hash:  "attr4",
+			Range: "attr1",
+		},
+		SecondaryIndexes: []SecondaryIndexDefinition{
+			SecondaryIndexDefinition{Hash: "attr2", Range: "attr3"},
+			SecondaryIndexDefinition{Hash: "attr3"},
+		},
+	}
+
+	obtained := ExcludeNonKeyAttributes(testData)
+	c.Check(obtained, DeepEquals, expected)
+}

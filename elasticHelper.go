@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	"strconv"
+	//"strconv"
 
 	"github.com/olivere/elastic"
 
@@ -21,14 +21,15 @@ func AddToElasticSearch(indexName, indexType, idValue, rangeValue string, item [
 
 	data := map[string]interface{}{}
 	for i := range item {
-		if item[i].Description.Type == "S" {
-			data[item[i].Description.Name] = item[i].Value
-		} else {
-			value, _ := strconv.Atoi(item[i].Value)
-			data[item[i].Description.Name] = value
-		}
-
+		// if item[i].Description.Type == "S" {
+		// 	data[item[i].Description.Name] = item[i].Value
+		// } else {
+		// 	value, _ := strconv.Atoi(item[i].Value)
+		// 	data[item[i].Description.Name] = value
+		// }
+		data[item[i].Description.Name] = item[i].Value
 	}
+
 	if rangeValue != "" {
 		hashName, err := GetHashName(indexType, schema)
 		if err != nil {
@@ -165,6 +166,32 @@ func AggregationSearch(index, field, metric string) (map[string]float64, error) 
 	}
 
 	return result, nil
+}
+
+func GeoSearch() {
+	client, err := elastic.NewClient()
+	if err != nil {
+		log.Println(err)
+		//return nil, err
+	}
+
+	allQuery := elastic.NewMatchAllQuery()
+	builder := client.Search().
+		Index("restaurants").
+		Query(&allQuery)
+
+	f := elastic.NewGeoDistanceFilter("location")
+	f = f.Lat(40)
+	f = f.Lon(-70)
+	f = f.Distance("200km")
+	f = f.DistanceType("plane")
+	f = f.OptimizeBbox("memory")
+
+	builder.PostFilter(f)
+
+	searchResult, _ := builder.Do()
+	log.Println(searchResult)
+
 }
 
 func decorate(metric, field string, builder *elastic.SearchService) (*elastic.SearchService, error) {

@@ -15,7 +15,6 @@ type TableDescription struct {
 	Attributes       []AttributeDefinition
 	PrimaryKey       PrimaryKeyDefinition
 	SecondaryIndexes []SecondaryIndexDefinition
-	FullTextSearch   []TextSearch
 }
 
 type AttributeDefinition struct {
@@ -39,7 +38,7 @@ type SecondaryIndexDefinition struct {
 
 type Attribute struct {
 	Description AttributeDefinition
-	Value       string
+	Value       interface{}
 }
 
 type Authentication struct {
@@ -112,4 +111,41 @@ func GetRangeName(tableName string, schema DbDescription) (string, error) {
 	}
 
 	return table.PrimaryKey.Range, nil
+}
+
+func ExcludeNonKeyAttributes(table TableDescription) []AttributeDefinition {
+	var newAttr = []AttributeDefinition{}
+	for _, attr := range table.Attributes {
+		if isKeySchemaAttribute(attr, table) {
+			newAttr = append(newAttr, attr)
+		}
+	}
+
+	return newAttr
+}
+
+func isKeySchemaAttribute(attr AttributeDefinition, table TableDescription) bool {
+	if isPrimaryKeyAttribute(attr, table) || isSecondaryIndexAttribute(attr, table) {
+		return true
+	}
+
+	return false
+}
+
+func isPrimaryKeyAttribute(attr AttributeDefinition, table TableDescription) bool {
+	if attr.Name == table.PrimaryKey.Hash || attr.Name == table.PrimaryKey.Range {
+		return true
+	}
+
+	return false
+}
+
+func isSecondaryIndexAttribute(attr AttributeDefinition, table TableDescription) bool {
+	for _, index := range table.SecondaryIndexes {
+		if attr.Name == index.Hash || attr.Name == index.Range {
+			return true
+		}
+	}
+
+	return false
 }
