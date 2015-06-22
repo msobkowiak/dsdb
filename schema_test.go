@@ -9,6 +9,11 @@ func (s *TableSuite) TestHasRange(c *C) {
 	c.Check(table_suite.Db.Tables["game_scores_test"].HasRange(), Equals, true)
 }
 
+func (s *TableSuite) TestHasGeoPoint(c *C) {
+	c.Check(table_suite.Db.Tables["geo_test"].HasGeoPoint(), Equals, true)
+	c.Check(table_suite.Db.Tables["game_scores_test"].HasGeoPoint(), Equals, false)
+}
+
 func (s *TableSuite) TestGetTypeOfAttribute(c *C) {
 	c.Check(table_suite.Db.Tables["users_test"].GetTypeOfAttribute("id"), Equals, "N")
 	c.Check(table_suite.Db.Tables["users_test"].GetTypeOfAttribute("email"), Equals, "S")
@@ -24,7 +29,7 @@ func (s *TableSuite) TestGetIndexByName(c *C) {
 	}
 
 	obtained, _ := table_suite.Db.Tables["users_test"].GetIndexByName("country")
-	_, err := table_suite.Db.Tables["users"].GetIndexByName("not_existed_index")
+	_, err := table_suite.Db.Tables["users_test"].GetIndexByName("not_existed_index")
 	c.Check(obtained, DeepEquals, expexted)
 	c.Check(err, ErrorMatches, "Index not found")
 }
@@ -36,6 +41,15 @@ func (s *TableSuite) TestGetHashName(c *C) {
 
 	_, err := GetHashName("not_existet_table", table_suite.Db)
 	c.Check(err, ErrorMatches, "Table not_existet_table not found.")
+}
+
+func (s *TableSuite) TestGeGeoPointName(c *C) {
+	expected := "location"
+	obtained, _ := table_suite.Db.Tables["geo_test"].GetGeoPointName()
+	c.Check(obtained, Equals, expected)
+
+	_, err := table_suite.Db.Tables["users_test"].GetGeoPointName()
+	c.Check(err, ErrorMatches, "No geo point found")
 }
 
 func (s *TableSuite) TestGetRangeName(c *C) {

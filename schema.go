@@ -87,6 +87,16 @@ func (t TableDescription) GetIndexByName(name string) (SecondaryIndexDefinition,
 	return SecondaryIndexDefinition{}, errors.New("Index not found")
 }
 
+func (t TableDescription) HasGeoPoint() bool {
+	for _, attr := range t.Attributes {
+		if attr.Type == "G" {
+			return true
+		}
+	}
+
+	return false
+}
+
 func GetTableDescription(tableName string, tables map[string]TableDescription) (TableDescription, error) {
 	if tables[tableName].Name != "" {
 		return tables[tableName], nil
@@ -111,6 +121,16 @@ func GetRangeName(tableName string, schema DbDescription) (string, error) {
 	}
 
 	return table.PrimaryKey.Range, nil
+}
+
+func (t TableDescription) GetGeoPointName() (string, error) {
+	for _, atrr := range t.Attributes {
+		if atrr.Type == "G" {
+			return atrr.Name, nil
+		}
+	}
+
+	return "", errors.New("No geo point found")
 }
 
 func ExcludeNonKeyAttributes(table TableDescription) []AttributeDefinition {

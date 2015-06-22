@@ -38,8 +38,7 @@ tables:
         attributes:
             - { name: "id", type: "N", required: true }
             - { name: "name", type: "S", required: true }
-            - { name: "lat", type: "N", required: true }
-            - { name: "long", type: "N", required: true }
+            - { name: "location", type: "G", required: true }
             - { name: "description", type: "S", required: false }
         primary_key:
             type: "HASH"

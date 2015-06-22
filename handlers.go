@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -78,6 +79,20 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		metric := getValue(queryParams["metric"])
 		data, err := AggregationSearch(table, field, metric)
 		writeSingleFloatResponse(data, err, w)
+	case "geo":
+		field := getValue(queryParams["field"])
+		distance := getValue(queryParams["distance"])
+		lat := getValue(queryParams["lat"])
+		latValue, _ := strconv.ParseFloat(lat, 64)
+		lon := getValue(queryParams["lon"])
+		lonValue, _ := strconv.ParseFloat(lon, 64)
+
+		if field != "" && distance != "" {
+			data, err := GeoSearch(table, field, distance, latValue, lonValue)
+			writeCollectionResponse(data, err, w)
+		} else {
+			writeErrorResponse("Missing search parameters", 404, w)
+		}
 	}
 }
 

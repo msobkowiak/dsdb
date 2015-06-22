@@ -4,12 +4,18 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	//"strconv"
+	"strconv"
+	"strings"
 
 	"github.com/olivere/elastic"
 
 	"math"
 )
+
+type geoPoint struct {
+	Lat float64 `json:"lat"`
+	Lon float64 `json:"lon"`
+}
 
 func AddToElasticSearch(indexName, indexType, idValue, rangeValue string, item []Attribute) {
 	client, err := elastic.NewClient()
@@ -21,13 +27,12 @@ func AddToElasticSearch(indexName, indexType, idValue, rangeValue string, item [
 
 	data := map[string]interface{}{}
 	for i := range item {
-		// if item[i].Description.Type == "S" {
-		// 	data[item[i].Description.Name] = item[i].Value
-		// } else {
-		// 	value, _ := strconv.Atoi(item[i].Value)
-		// 	data[item[i].Description.Name] = value
-		// }
-		data[item[i].Description.Name] = item[i].Value
+		if item[i].Description.Name == "location" {
+			geo, _ := GeoPointFromString(item[i].Value.(string))
+			data[item[i].Description.Name] = geo
+		} else {
+			data[item[i].Description.Name] = item[i].Value
+		}
 	}
 
 	if rangeValue != "" {
@@ -65,10 +70,24 @@ func createIndex(indexName string, client *elastic.Client) {
 		if !createIndex.Acknowledged {
 			log.Println("Error on creating index")
 		}
+
+		table, err := GetTableDescription(indexName, schema.Tables)
+		if err != nil {
+			log.Println(err)
+		}
+		if table.HasGeoPoint() {
+			field, err := table.GetGeoPointName()
+			if err != nil {
+				log.Println(err)
+			} else {
+				mappGeoPoint(indexName, field, client)
+			}
+		}
 	}
 }
 
 func addIndexValue(indexName, indexType, id string, indexBody []byte, client *elastic.Client) {
+
 	_, err := client.Index().
 		Index(indexName).
 		Id(id).
@@ -84,7 +103,23 @@ func addIndexValue(indexName, indexType, id string, indexBody []byte, client *el
 	if err != nil {
 		panic(err)
 	}
+}
 
+func mappGeoPoint(indexName, field string, client *elastic.Client) {
+	mapping := `{
+		"` + indexName + `":{
+			"properties":{
+				"` + field + `":{
+					"type":"geo_point"
+				}
+			}
+		}
+	}`
+
+	_, err := client.PutMapping().Index(indexName).Type(indexName).BodyString(mapping).Do()
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func FullTextSearchQuery(index, field, query, operator, precision string) ([]map[string]string, error) {
@@ -168,29 +203,41 @@ func AggregationSearch(index, field, metric string) (map[string]float64, error) 
 	return result, nil
 }
 
-func GeoSearch() {
+func GeoSearch(tableName, field, distance string, lat, lon float64) ([]map[string]string, error) {
 	client, err := elastic.NewClient()
 	if err != nil {
-		log.Println(err)
-		//return nil, err
+		return nil, err
 	}
 
 	allQuery := elastic.NewMatchAllQuery()
 	builder := client.Search().
-		Index("restaurants").
+		Index(tableName).
 		Query(&allQuery)
 
-	f := elastic.NewGeoDistanceFilter("location")
-	f = f.Lat(40)
-	f = f.Lon(-70)
-	f = f.Distance("200km")
+	f := elastic.NewGeoDistanceFilter(field)
+	f = f.Lat(lat)
+	f = f.Lon(lon)
+	f = f.Distance(distance)
 	f = f.DistanceType("plane")
 	f = f.OptimizeBbox("memory")
 
 	builder.PostFilter(f)
 
-	searchResult, _ := builder.Do()
-	log.Println(searchResult)
+	searchResult, err := builder.Do()
+	if searchResult.Hits != nil {
+		var result = make([]map[string]string, searchResult.Hits.TotalHits)
+		for i, hit := range searchResult.Hits.Hits {
+			var t map[string]string
+			err := json.Unmarshal(*hit.Source, &t)
+			if err != nil {
+				log.Println(err)
+			}
+			result[i] = t
+		}
+		return result, nil
+	}
+
+	return nil, errors.New("No results found")
 
 }
 
@@ -278,4 +325,20 @@ func isCalculable(index, metric, field string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func GeoPointFromString(latLon string) (geoPoint, error) {
+	latlon := strings.SplitN(latLon, ",", 2)
+	if len(latlon) != 2 {
+		return geoPoint{}, errors.New("elastic: " + latLon + " is not a valid geo point string")
+	}
+	latValue, err := strconv.ParseFloat(latlon[0], 64)
+	if err != nil {
+		return geoPoint{}, err
+	}
+	lonValue, err := strconv.ParseFloat(latlon[1], 64)
+	if err != nil {
+		return geoPoint{}, err
+	}
+	return geoPoint{Lat: latValue, Lon: lonValue}, nil
 }

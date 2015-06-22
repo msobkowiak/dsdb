@@ -89,6 +89,19 @@ var table_suite = &TableSuite{
 					},
 				},
 			},
+			"geo_test": TableDescription{
+				Name: "geo_test",
+				Attributes: []AttributeDefinition{
+					AttributeDefinition{"id", "N", true},
+					AttributeDefinition{"name", "S", true},
+					AttributeDefinition{"descroption", "S", true},
+					AttributeDefinition{"location", "G", true},
+				},
+				PrimaryKey: PrimaryKeyDefinition{
+					Type: "HASH",
+					Hash: "id",
+				},
+			},
 		},
 	},
 	Data: map[string][][]dynamodb.Attribute{
@@ -132,6 +145,28 @@ var table_suite = &TableSuite{
 				*dynamodb.NewNumericAttribute("top_score", "12"),
 				*dynamodb.NewNumericAttribute("wins", "8"),
 				*dynamodb.NewNumericAttribute("losts", "2"),
+			},
+		},
+		"geo_test": [][]dynamodb.Attribute{
+			[]dynamodb.Attribute{
+				*dynamodb.NewNumericAttribute("name", "place1"),
+				*dynamodb.NewNumericAttribute("description", "place1 description"),
+				*dynamodb.NewNumericAttribute("location", "41.158915,-8.631091"),
+			},
+			[]dynamodb.Attribute{
+				*dynamodb.NewNumericAttribute("name", "place2"),
+				*dynamodb.NewNumericAttribute("description", "place2 description"),
+				*dynamodb.NewNumericAttribute("location", "42.158915,-7.631091"),
+			},
+			[]dynamodb.Attribute{
+				*dynamodb.NewNumericAttribute("name", "place3"),
+				*dynamodb.NewNumericAttribute("description", "place3 description"),
+				*dynamodb.NewNumericAttribute("location", "41.558915,-8.131091"),
+			},
+			[]dynamodb.Attribute{
+				*dynamodb.NewNumericAttribute("name", "place4"),
+				*dynamodb.NewNumericAttribute("description", "place4 description"),
+				*dynamodb.NewNumericAttribute("location", "42.458915,-6.631091"),
 			},
 		},
 	},
