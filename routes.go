@@ -40,13 +40,13 @@ var routes = Routes{
 		"DeleteItem",
 		"DELETE",
 		"/{table}/{hash}",
-		DeleteByHash,
+		DeleteItem,
 	},
 	Route{
 		"DeleteItems",
 		"DELETE",
 		"/{table}/{hash}/{range}",
-		DeleteByHashRange,
+		DeleteItem,
 	},
 	Route{
 		"AddItem",
@@ -58,6 +58,6 @@ var routes = Routes{
 		"AddItem",
 		"POST",
 		"/{table}/{hash}/{range}",
-		AddItemHashRange,
+		AddItem,
 	},
 }

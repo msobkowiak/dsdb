@@ -50,20 +50,24 @@ var table_suite = &TableSuite{
 					AttributeDefinition{"email", "S", true},
 					AttributeDefinition{"country", "S", true},
 				},
-				PrimaryKey: PrimaryKeyDefinition{
+				PrimaryKey: KeyDefinition{
 					Type: "HASH",
 					Hash: "id",
 				},
 				SecondaryIndexes: []SecondaryIndexDefinition{
 					SecondaryIndexDefinition{
 						Name: "email",
-						Type: "HASH",
-						Hash: "email",
+						Key: KeyDefinition{
+							Type: "HASH",
+							Hash: "email",
+						},
 					},
 					SecondaryIndexDefinition{
 						Name: "country",
-						Type: "HASH",
-						Hash: "country",
+						Key: KeyDefinition{
+							Type: "HASH",
+							Hash: "country",
+						},
 					},
 				},
 			},
@@ -75,17 +79,19 @@ var table_suite = &TableSuite{
 					AttributeDefinition{"wins", "N", true},
 					AttributeDefinition{"losts", "N", true},
 				},
-				PrimaryKey: PrimaryKeyDefinition{
+				PrimaryKey: KeyDefinition{
 					Type:  "RANGE",
 					Hash:  "game_title",
 					Range: "user_id",
 				},
 				SecondaryIndexes: []SecondaryIndexDefinition{
 					SecondaryIndexDefinition{
-						Name:  "wins_losts",
-						Type:  "RANGE",
-						Hash:  "wins",
-						Range: "losts",
+						Name: "wins_losts",
+						Key: KeyDefinition{
+							Type:  "RANGE",
+							Hash:  "wins",
+							Range: "losts",
+						},
 					},
 				},
 			},
@@ -97,7 +103,7 @@ var table_suite = &TableSuite{
 					AttributeDefinition{"descroption", "S", true},
 					AttributeDefinition{"location", "G", true},
 				},
-				PrimaryKey: PrimaryKeyDefinition{
+				PrimaryKey: KeyDefinition{
 					Type: "HASH",
 					Hash: "id",
 				},

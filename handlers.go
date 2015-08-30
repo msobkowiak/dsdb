@@ -15,7 +15,7 @@ func GetAllItems(w http.ResponseWriter, r *http.Request) {
 	table := vars["table"]
 
 	data, err := RepoGetAllItems(table)
-	writeCollectionResponse(data, err, w)
+	writeResponse(data, err, w)
 }
 
 func GetByHash(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +33,7 @@ func GetByHashRange(w http.ResponseWriter, r *http.Request) {
 	table := vars["table"]
 
 	data, err := RepoGetItemByHashRange(table, hash, rangeKey)
-	writeSingleItemResponse(data, err, w)
+	writeResponse(data, err, w)
 }
 
 func GetByRange(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +42,7 @@ func GetByRange(w http.ResponseWriter, r *http.Request) {
 	table := vars["table"]
 
 	data, err := RepoGetItemsByHash(table, rangeKey)
-	writeCollectionResponse(data, err, w)
+	writeResponse(data, err, w)
 }
 
 func Search(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +70,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 
 		if field != "" && query != "" {
 			data, err := FullTextSearchQuery(table, field, query, getValue(queryParams["operator"]), getValue(queryParams["precision"]))
-			writeCollectionResponse(data, err, w)
+			writeResponse(data, err, w)
 		} else {
 			writeErrorResponse("Missing search parameters", 404, w)
 		}
@@ -78,7 +78,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		field := getValue(queryParams["field"])
 		metric := getValue(queryParams["metric"])
 		data, err := AggregationSearch(table, field, metric)
-		writeSingleFloatResponse(data, err, w)
+		writeResponse(data, err, w)
 	case "geo":
 		field := getValue(queryParams["field"])
 		distance := getValue(queryParams["distance"])
@@ -89,70 +89,33 @@ func Search(w http.ResponseWriter, r *http.Request) {
 
 		if field != "" && distance != "" {
 			data, err := GeoSearch(table, field, distance, latValue, lonValue)
-			writeCollectionResponse(data, err, w)
+			writeResponse(data, err, w)
 		} else {
 			writeErrorResponse("Missing search parameters", 404, w)
 		}
 	}
 }
 
-func DeleteByHash(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	hash := vars["hash"]
-	table := vars["table"]
-
-	ok, err := RepoDeleteItem(table, hash)
-	writeDeleteResponse(ok, err, w)
-}
-
-func DeleteByHashRange(w http.ResponseWriter, r *http.Request) {
+func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	hashKey := vars["hash"]
 	rangeKey := vars["range"]
 	table := vars["table"]
 
-	ok, err := RepoDeleteItemWithRange(table, hashKey, rangeKey)
-	writeDeleteResponse(ok, err, w)
+	var ok bool
+	var err error
+	if rangeKey != "" {
+		ok, err = RepoDeleteItemWithRange(table, hashKey, rangeKey)
+	} else {
+		ok, err = RepoDeleteItem(table, hashKey)
+	}
+	writeBoolResponse(ok, err, w)
 }
 
 func AddItem(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	table := vars["table"]
 	hashKey := vars["hash"]
-
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
-	if err != nil {
-		panic(err)
-	}
-	if err := r.Body.Close(); err != nil {
-		panic(err)
-	}
-
-	var data map[string]string
-	if err := json.Unmarshal(body, &data); err != nil {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(422) // unprocessable entity
-		if err := json.NewEncoder(w).Encode(err); err != nil {
-			panic(err)
-		}
-	}
-
-	item := convertDataToAttrubute(data)
-
-	t, _ := RepoAddItem(table, hashKey, item)
-	AddToElasticSearch(table, table, hashKey, "", item)
-
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(t); err != nil {
-		panic(err)
-	}
-}
-
-func AddItemHashRange(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	table := vars["table"]
-	hashKey := vars["hash"]
 	rangeKey := vars["range"]
 
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
@@ -163,27 +126,20 @@ func AddItemHashRange(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	var data map[string]string
+	var data map[string]interface{}
 	if err := json.Unmarshal(body, &data); err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
-		if err := json.NewEncoder(w).Encode(err); err != nil {
-			panic(err)
-		}
-	}
-	item := convertDataToAttrubute(data)
-
-	t, _ := RepoAddItemHashRange(table, hashKey, rangeKey, item)
-	AddToElasticSearch(table, table, hashKey, rangeKey, item)
-
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(t); err != nil {
-		panic(err)
+		createTransferObject(w, err)
+	} else {
+		item := createBussinesObject(data)
+		ok, err := RepoAddItem(table, hashKey, rangeKey, item)
+		AddToElasticSearch(table, table, hashKey, rangeKey, item)
+		writeBoolResponse(ok, err, w)
 	}
 }
 
-func convertDataToAttrubute(data map[string]string) []Attribute {
+func createBussinesObject(data map[string]interface{}) []Attribute {
 	item := make([]Attribute, len(data))
 	count := 0
 	for key := range data {
@@ -199,6 +155,10 @@ func convertDataToAttrubute(data map[string]string) []Attribute {
 	return item
 }
 
+func createTransferObject(w http.ResponseWriter, data interface{}) {
+	json.NewEncoder(w).Encode(data)
+}
+
 func primaryKeySearch(rangeOperator, hashKey, rangeValue []string, table string, w http.ResponseWriter) {
 	if rangeOperator == nil {
 		if hashKey != nil {
@@ -208,7 +168,7 @@ func primaryKeySearch(rangeOperator, hashKey, rangeValue []string, table string,
 		}
 	} else if hashKey != nil && rangeValue != nil {
 		data, err := RepoGetItemsByRangeOp(table, hashKey[0], rangeOperator[0], rangeValue)
-		writeCollectionResponse(data, err, w)
+		writeResponse(data, err, w)
 	} else {
 		writeErrorResponse("Missing primary key value(s)", 404, w)
 	}
@@ -223,7 +183,7 @@ func secondaryIndexSearch(index, rangeOperator, hashKey, rangeValue []string, ta
 		}
 	} else if hashKey != nil && rangeValue != nil {
 		data, err := RepoGetItemsByIndexRangeOp(table, index[0], hashKey[0], rangeOperator[0], rangeValue)
-		writeCollectionResponse(data, err, w)
+		writeResponse(data, err, w)
 	} else {
 		writeErrorResponse("Missing primary key value(s)", 404, w)
 	}
@@ -237,52 +197,31 @@ func getItemsByHash(table, hash string, w http.ResponseWriter) {
 
 	if schema.HasRange() {
 		data, err := RepoGetItemsByHash(table, hash)
-		writeCollectionResponse(data, err, w)
+		writeResponse(data, err, w)
 	} else {
 		data, err := RepoGetItemByHash(table, hash)
-		writeSingleItemResponse(data, err, w)
+		writeResponse(data, err, w)
 	}
 }
 
 func getItemsByIndexHash(table, indexName, hash string, w http.ResponseWriter) {
 	data, err := RepoGetItemByIndexHash(table, indexName, hash)
-	writeCollectionResponse(data, err, w)
+	writeResponse(data, err, w)
 }
 
-func writeSingleItemResponse(data map[string]string, err error, w http.ResponseWriter) {
+func writeResponse(data interface{}, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(GetErrorMsg(err, 404))
+		createTransferObject(w, GetErrorMsg(err, 404))
 	} else {
 		w.WriteHeader(http.StatusFound)
-		json.NewEncoder(w).Encode(data)
+		createTransferObject(w, data)
 	}
 }
 
-func writeSingleFloatResponse(data map[string]float64, err error, w http.ResponseWriter) {
+func writeBoolResponse(ok bool, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(GetErrorMsg(err, 404))
-	} else {
-		w.WriteHeader(http.StatusFound)
-		json.NewEncoder(w).Encode(data)
-	}
-}
-
-func writeCollectionResponse(data []map[string]string, err error, w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(GetErrorMsg(err, 404))
-	} else {
-		w.WriteHeader(http.StatusFound)
-		json.NewEncoder(w).Encode(data)
-	}
-}
-
-func writeDeleteResponse(ok bool, err error, w http.ResponseWriter) {
 	if ok {
 		w.WriteHeader(http.StatusNoContent)
 	} else {
@@ -292,12 +231,9 @@ func writeDeleteResponse(ok bool, err error, w http.ResponseWriter) {
 }
 
 func writeErrorResponse(message string, statusCode int, w http.ResponseWriter) {
-	err := Error{
-		statusCode,
-		message,
-	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusNotFound)
-	json.NewEncoder(w).Encode(err)
+	createTransferObject(w, newError(message, statusCode))
 }
 
 func getValue(queryParams []string) string {

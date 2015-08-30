@@ -348,36 +348,24 @@ func (s *TableSuite) TestRepoGetItemsByIndexRangeOp(c *C) {
 func (s *TableSuite) TestAddItem(c *C) {
 	item := []Attribute{
 		Attribute{
-			Description: AttributeDefinition{
-				Name: "first_name",
-				Type: "S",
-			},
-			Value: "Test_first_name",
+			Description: AttributeDefinition{Name: "first_name", Type: "S"},
+			Value:       "Test_first_name",
 		},
 		Attribute{
-			Description: AttributeDefinition{
-				Name: "last_name",
-				Type: "S",
-			},
-			Value: "Test_last_name",
+			Description: AttributeDefinition{Name: "last_name", Type: "S"},
+			Value:       "Test_last_name",
 		},
 		Attribute{
-			Description: AttributeDefinition{
-				Name: "email",
-				Type: "S",
-			},
-			Value: "Test_email",
+			Description: AttributeDefinition{Name: "email", Type: "S"},
+			Value:       "Test_email",
 		},
 		Attribute{
-			Description: AttributeDefinition{
-				Name: "country",
-				Type: "S",
-			},
-			Value: "Test_country",
+			Description: AttributeDefinition{Name: "country", Type: "S"},
+			Value:       "Test_country",
 		},
 	}
 
-	status, _ := RepoAddItem("users_test", "4", item)
+	status, _ := RepoAddItem("users_test", "4", "", item)
 	c.Check(status, Equals, true)
 
 	expected := map[string]string{
@@ -403,29 +391,20 @@ func (s *TableSuite) TestRepoDeleteItem(c *C) {
 func (s *TableSuite) TestAddItemHashRange(c *C) {
 	item := []Attribute{
 		Attribute{
-			Description: AttributeDefinition{
-				Name: "top_score",
-				Type: "N",
-			},
-			Value: "111",
+			Description: AttributeDefinition{Name: "top_score", Type: "N"},
+			Value:       "111",
 		},
 		Attribute{
-			Description: AttributeDefinition{
-				Name: "wins",
-				Type: "N",
-			},
-			Value: "222",
+			Description: AttributeDefinition{Name: "wins", Type: "N"},
+			Value:       "222",
 		},
 		Attribute{
-			Description: AttributeDefinition{
-				Name: "losts",
-				Type: "N",
-			},
-			Value: "333",
+			Description: AttributeDefinition{Name: "losts", Type: "N"},
+			Value:       "333",
 		},
 	}
 
-	status, _ := RepoAddItemHashRange("game_scores_test", "test_hash_value", "1", item)
+	status, _ := RepoAddItem("game_scores_test", "test_hash_value", "1", item)
 	c.Check(status, Equals, true)
 
 	expected := map[string]string{

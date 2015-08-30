@@ -115,7 +115,7 @@ var data = map[string][][]Attribute{
 		},
 		[]Attribute{
 			Attribute{Description: AttributeDefinition{Name: "name", Type: "S"}, Value: "Pasta Cafe1"},
-			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.154941,--8.638"},
+			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.154941,-8.638"},
 			Attribute{Description: AttributeDefinition{Name: "descripion", Type: "S"}, Value: "The best tradicional portugues restaurant in town. Our speciality: pasta, pasta, pasta!"},
 		},
 		[]Attribute{
@@ -130,7 +130,7 @@ var data = map[string][][]Attribute{
 		},
 		[]Attribute{
 			Attribute{Description: AttributeDefinition{Name: "name", Type: "S"}, Value: "Pasta Cafe4"},
-			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.147379}, -8.605642"},
+			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.147379,-8.605642"},
 			Attribute{Description: AttributeDefinition{Name: "descripion", Type: "S"}, Value: "The best tradicional portugues restaurant in town. Our speciality: pasta, pasta, pasta!"},
 		},
 	},
@@ -167,7 +167,7 @@ func Bootstrap(dbDescription DbDescription) {
 	CreateTable(dbDescription.Tables[tableName])
 	for i := range data[tableName] {
 		hash := strconv.FormatInt(int64(i+1), 10)
-		RepoAddItem(tableName, hash, data[tableName][i])
+		RepoAddItem(tableName, hash, "", data[tableName][i])
 		AddToElasticSearch(tableName, tableName, hash, "", data[tableName][i])
 	}
 
@@ -175,7 +175,7 @@ func Bootstrap(dbDescription DbDescription) {
 	CreateTable(dbDescription.Tables[tableName])
 	for i := range data[tableName] {
 		rangeValue := strconv.FormatInt(int64(i+1), 10)
-		RepoAddItemHashRange(tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
+		RepoAddItem(tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
 		AddToElasticSearch(tableName, tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
 	}
 
@@ -183,7 +183,7 @@ func Bootstrap(dbDescription DbDescription) {
 	CreateTable(dbDescription.Tables[tableName])
 	for i := range data[tableName] {
 		hash := strconv.FormatInt(int64(i+1), 10)
-		RepoAddItem(tableName, hash, data[tableName][i])
+		RepoAddItem(tableName, hash, "", data[tableName][i])
 		AddToElasticSearch(tableName, tableName, hash, "", data[tableName][i])
 	}
 }

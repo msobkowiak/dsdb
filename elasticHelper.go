@@ -320,7 +320,7 @@ func isCalculable(index, metric, field string) (bool, error) {
 
 		metricType := table.GetTypeOfAttribute(field)
 		if metricType != "N" {
-			return false, errors.New("Not possible to calculate metric " + metric + " non numeric filed")
+			return false, errors.New("Not possible to calculate metric " + metric + " on non numeric filed")
 		}
 	}
 

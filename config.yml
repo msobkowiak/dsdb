@@ -18,7 +18,7 @@ tables:
             type: "HASH"
             hash: "id"
         secondary_indexes:
-            - { name: "email", type: "HASH", hash: "email" }
+            - { name: "email", key: { type: "HASH", hash: "email" } }
     -
         name: "game_scores"
         attributes:
@@ -32,7 +32,7 @@ tables:
             hash: "game_title"
             range: "user_id"
         secondary_indexes:
-            - { name: "wins_losts", type: "RANGE", hash: "wins", range: "losts" }
+            - { name: "wins_losts", key: { type: "RANGE", hash: "wins", range: "losts" } }
     -
         name: "restaurants"
         attributes:

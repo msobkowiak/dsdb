@@ -212,7 +212,7 @@ func addAttributeDefinition(table *dynamodb.TableDescriptionT, schemaTable Table
 	}
 }
 
-func addPrimaryKey(table *dynamodb.TableDescriptionT, key PrimaryKeyDefinition, attrs []AttributeDefinition) {
+func addPrimaryKey(table *dynamodb.TableDescriptionT, key KeyDefinition, attrs []AttributeDefinition) {
 	if key.Type == "HASH" {
 		table.KeySchema = make([]dynamodb.KeySchemaT, 1)
 		addHash(key.Hash, attrs, table.KeySchema)
@@ -232,13 +232,13 @@ func addSecondaryIndexes(table *dynamodb.TableDescriptionT, indexes []SecondaryI
 			IndexName: indexes[i].Name,
 		}
 
-		if indexes[i].Type == "HASH" {
+		if indexes[i].Key.Type == "HASH" {
 			table.GlobalSecondaryIndexes[i].KeySchema = make([]dynamodb.KeySchemaT, 1)
-			addHash(indexes[i].Hash, attrs, table.GlobalSecondaryIndexes[i].KeySchema)
-		} else if indexes[i].Type == "RANGE" {
+			addHash(indexes[i].Key.Hash, attrs, table.GlobalSecondaryIndexes[i].KeySchema)
+		} else if indexes[i].Key.Type == "RANGE" {
 			table.GlobalSecondaryIndexes[i].KeySchema = make([]dynamodb.KeySchemaT, 2)
-			addHash(indexes[i].Hash, attrs, table.GlobalSecondaryIndexes[i].KeySchema)
-			addRange(indexes[i].Range, attrs, table.GlobalSecondaryIndexes[i].KeySchema)
+			addHash(indexes[i].Key.Hash, attrs, table.GlobalSecondaryIndexes[i].KeySchema)
+			addRange(indexes[i].Key.Range, attrs, table.GlobalSecondaryIndexes[i].KeySchema)
 		}
 		table.GlobalSecondaryIndexes[i].Projection = dynamodb.ProjectionT{"ALL"}
 		table.GlobalSecondaryIndexes[i].ProvisionedThroughput = dynamodb.ProvisionedThroughputT{

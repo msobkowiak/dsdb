@@ -13,7 +13,7 @@ type DbDescription struct {
 type TableDescription struct {
 	Name             string
 	Attributes       []AttributeDefinition
-	PrimaryKey       PrimaryKeyDefinition
+	PrimaryKey       KeyDefinition
 	SecondaryIndexes []SecondaryIndexDefinition
 }
 
@@ -23,17 +23,15 @@ type AttributeDefinition struct {
 	Required bool
 }
 
-type PrimaryKeyDefinition struct {
+type KeyDefinition struct {
 	Type  string
 	Hash  string
 	Range string
 }
 
 type SecondaryIndexDefinition struct {
-	Name  string
-	Type  string
-	Hash  string
-	Range string
+	Name string
+	Key  KeyDefinition
 }
 
 type Attribute struct {
@@ -162,7 +160,7 @@ func isPrimaryKeyAttribute(attr AttributeDefinition, table TableDescription) boo
 
 func isSecondaryIndexAttribute(attr AttributeDefinition, table TableDescription) bool {
 	for _, index := range table.SecondaryIndexes {
-		if attr.Name == index.Hash || attr.Name == index.Range {
+		if attr.Name == index.Key.Hash || attr.Name == index.Key.Range {
 			return true
 		}
 	}

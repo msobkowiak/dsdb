@@ -19,7 +19,7 @@ func LoadSchema(filePath string) DbDescription {
 		Tables            []struct {
 			Name              string
 			Attributes        []AttributeDefinition
-			Primary_key       PrimaryKeyDefinition
+			Primary_key       KeyDefinition
 			Secondary_indexes []SecondaryIndexDefinition
 			Full_text_search  []TextSearch
 		}

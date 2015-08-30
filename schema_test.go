@@ -24,8 +24,10 @@ func (s *TableSuite) TestGetTypeOfAttribute(c *C) {
 func (s *TableSuite) TestGetIndexByName(c *C) {
 	expexted := SecondaryIndexDefinition{
 		Name: "country",
-		Type: "HASH",
-		Hash: "country",
+		Key: KeyDefinition{
+			Type: "HASH",
+			Hash: "country",
+		},
 	}
 
 	obtained, _ := table_suite.Db.Tables["users_test"].GetIndexByName("country")
@@ -80,13 +82,13 @@ func (s *TableSuite) TestExcludeNonKeyAttributes(c *C) {
 			AttributeDefinition{Name: "attr3", Type: "S", Required: true},
 			AttributeDefinition{Name: "attr4", Type: "S", Required: true},
 		},
-		PrimaryKey: PrimaryKeyDefinition{
+		PrimaryKey: KeyDefinition{
 			Hash:  "attr4",
 			Range: "attr1",
 		},
 		SecondaryIndexes: []SecondaryIndexDefinition{
-			SecondaryIndexDefinition{Hash: "attr2", Range: "attr3"},
-			SecondaryIndexDefinition{Hash: "attr3"},
+			SecondaryIndexDefinition{Key: KeyDefinition{Hash: "attr2", Range: "attr3"}},
+			SecondaryIndexDefinition{Key: KeyDefinition{Hash: "attr3"}},
 		},
 	}
 

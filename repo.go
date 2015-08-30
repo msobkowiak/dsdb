@@ -73,7 +73,7 @@ func RepoGetItemByIndexHash(tableName, indexName, hashValue string) ([]map[strin
 		return nil, err
 	}
 
-	atrrComaparations := buildQueryHash(tableName, index.Hash, hashValue)
+	atrrComaparations := buildQueryHash(tableName, index.Key.Hash, hashValue)
 
 	items, err := table.QueryOnIndex(atrrComaparations, indexName)
 	if err != nil {
@@ -112,7 +112,7 @@ func RepoGetItemsByIndexRangeOp(tableName, indexName, hashValue, operator string
 	}
 
 	var atrrComaparations []dynamodb.AttributeComparison
-	atrrComaparations = buildQueryRange(tableName, index.Hash, hashValue, operator, index.Range, rangeValue)
+	atrrComaparations = buildQueryRange(tableName, index.Key.Hash, hashValue, operator, index.Key.Range, rangeValue)
 
 	items, err := table.QueryOnIndex(atrrComaparations, indexName)
 	if err != nil {
@@ -149,44 +149,27 @@ func RepoDeleteItemWithRange(tableName, hashKey, rangeKey string) (bool, error) 
 	return status, nil
 }
 
-func RepoAddItem(tableName, hash string, item []Attribute) (bool, error) {
+func RepoAddItem(tableName, hashKey, rangeKey string, item []Attribute) (bool, error) {
 	t, err := GetTableDescription(tableName, schema.Tables)
 	if err != nil {
 		return false, err
 	}
-
 	table, err := GetDynamoTable(tableName)
 	if err != nil {
 		return false, err
 	}
+
 	var attr = make([]dynamodb.Attribute, len(item))
 	for i := range item {
 		name := item[i].Description.Name
-		attr[i] = dynamodb.Attribute{
-			Type:  t.GetTypeOfAttribute(name),
-			Name:  name,
-			Value: getStringValue(item[i].Value),
+		var attrType string
+		if t.GetTypeOfAttribute(name) == "G" {
+			attrType = "S"
+		} else {
+			attrType = t.GetTypeOfAttribute(name)
 		}
-	}
-
-	return table.PutItem(hash, "", attr)
-}
-
-func RepoAddItemHashRange(tableName, hashKey, rangeKey string, item []Attribute) (bool, error) {
-	t, err := GetTableDescription(tableName, schema.Tables)
-	if err != nil {
-		return false, err
-	}
-	table, err := GetDynamoTable(tableName)
-	if err != nil {
-		return false, err
-	}
-
-	var attr = make([]dynamodb.Attribute, len(item))
-	for i := range item {
-		name := item[i].Description.Name
 		attr[i] = dynamodb.Attribute{
-			Type:  t.GetTypeOfAttribute(name),
+			Type:  attrType,
 			Name:  item[i].Description.Name,
 			Value: getStringValue(item[i].Value),
 		}
@@ -317,8 +300,8 @@ func getStringValue(itemValue interface{}) string {
 	switch itemValue.(type) {
 	case string:
 		value = itemValue.(string)
-	case int64:
-		value = string(itemValue.(int64))
+	case int, int32, int64:
+		value = strconv.FormatInt(int64(itemValue.(int)), 10)
 	case float64:
 		value = strconv.FormatFloat(itemValue.(float64), 'f', 8, 64)
 	}
