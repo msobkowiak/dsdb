@@ -5,7 +5,10 @@ import (
 	"strconv"
 )
 
-func RepoGetAllItems(tableName string) ([]map[string]string, error) {
+type DynamoCRUDRepository struct {
+}
+
+func (r DynamoCRUDRepository) GetAll(tableName string) ([]map[string]string, error) {
 	table, err := GetDynamoTable(tableName)
 	if err != nil {
 		return nil, err
@@ -19,7 +22,7 @@ func RepoGetAllItems(tableName string) ([]map[string]string, error) {
 	return getDataAsArray(items), nil
 }
 
-func RepoGetItemByHash(tableName, hash string) (map[string]string, error) {
+func (r DynamoCRUDRepository) GetByHash(tableName, hash string) (map[string]string, error) {
 	table, err := GetDynamoTable(tableName)
 	if err != nil {
 		return nil, err
@@ -32,7 +35,7 @@ func RepoGetItemByHash(tableName, hash string) (map[string]string, error) {
 	return getData(item), nil
 }
 
-func RepoGetItemByHashRange(tableName, hashKey, rangeKey string) (map[string]string, error) {
+func (r DynamoCRUDRepository) GetByHashRange(tableName, hashKey, rangeKey string) (map[string]string, error) {
 	table, err := GetDynamoTable(tableName)
 	if err != nil {
 		return nil, err
@@ -45,7 +48,7 @@ func RepoGetItemByHashRange(tableName, hashKey, rangeKey string) (map[string]str
 	return getData(item), nil
 }
 
-func RepoGetItemsByHash(tableName, hashValue string) ([]map[string]string, error) {
+func (r DynamoCRUDRepository) GetByOnlyHash(tableName, hashValue string) ([]map[string]string, error) {
 	table, err := GetDynamoTable(tableName)
 	if err != nil {
 		return nil, err
@@ -62,7 +65,7 @@ func RepoGetItemsByHash(tableName, hashValue string) ([]map[string]string, error
 	return getDataAsArray(items), nil
 }
 
-func RepoGetItemByIndexHash(tableName, indexName, hashValue string) ([]map[string]string, error) {
+func (r DynamoCRUDRepository) GetByIndexHash(tableName, indexName, hashValue string) ([]map[string]string, error) {
 	table, err := GetDynamoTable(tableName)
 	if err != nil {
 		return nil, err
@@ -83,7 +86,7 @@ func RepoGetItemByIndexHash(tableName, indexName, hashValue string) ([]map[strin
 	return getDataAsArray(items), nil
 }
 
-func RepoGetItemsByRangeOp(tableName, hashValue, operator string, rangeValue []string) ([]map[string]string, error) {
+func (r DynamoCRUDRepository) GetByOnlyRange(tableName, hashValue, operator string, rangeValue []string) ([]map[string]string, error) {
 	table, err := GetDynamoTable(tableName)
 	if err != nil {
 		return nil, err
@@ -100,7 +103,7 @@ func RepoGetItemsByRangeOp(tableName, hashValue, operator string, rangeValue []s
 	return getDataAsArray(items), nil
 }
 
-func RepoGetItemsByIndexRangeOp(tableName, indexName, hashValue, operator string, rangeValue []string) ([]map[string]string, error) {
+func (r DynamoCRUDRepository) GetByIndexRange(tableName, indexName, hashValue, operator string, rangeValue []string) ([]map[string]string, error) {
 	table, err := GetDynamoTable(tableName)
 	if err != nil {
 		return nil, err
@@ -122,7 +125,7 @@ func RepoGetItemsByIndexRangeOp(tableName, indexName, hashValue, operator string
 	return getDataAsArray(items), nil
 }
 
-func RepoDeleteItem(tableName, hash string) (bool, error) {
+func (r DynamoCRUDRepository) DeleteByHash(tableName, hash string) (bool, error) {
 	schema, err := GetTableDescription(tableName, schema.Tables)
 	if err != nil {
 		return false, err
@@ -135,7 +138,7 @@ func RepoDeleteItem(tableName, hash string) (bool, error) {
 	return deleteItem(tableName, hash)
 }
 
-func RepoDeleteItemWithRange(tableName, hashKey, rangeKey string) (bool, error) {
+func (r DynamoCRUDRepository) DeleteByHashRange(tableName, hashKey, rangeKey string) (bool, error) {
 	table, err := GetDynamoTable(tableName)
 	if err != nil {
 		return false, err
@@ -149,7 +152,7 @@ func RepoDeleteItemWithRange(tableName, hashKey, rangeKey string) (bool, error) 
 	return status, nil
 }
 
-func RepoAddItem(tableName, hashKey, rangeKey string, item []Attribute) (bool, error) {
+func (r DynamoCRUDRepository) Add(tableName, hashKey, rangeKey string, item []Attribute) (bool, error) {
 	t, err := GetTableDescription(tableName, schema.Tables)
 	if err != nil {
 		return false, err
@@ -282,8 +285,9 @@ func deleteItem(tableName, hash string) (bool, error) {
 
 func deleteItems(tableName, hash string, schema TableDescription) (bool, error) {
 	table, _ := GetDynamoTable(tableName)
+	var repo DynamoCRUDRepository
 
-	items, _ := RepoGetItemsByHash(tableName, hash)
+	items, _ := repo.GetByOnlyHash(tableName, hash)
 	for i := range items {
 		status, err := table.DeleteItem(&dynamodb.Key{HashKey: items[i][schema.PrimaryKey.Hash], RangeKey: items[i][schema.PrimaryKey.Range]})
 		if err != nil {

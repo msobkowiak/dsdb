@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -14,7 +15,8 @@ func GetAllItems(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	table := vars["table"]
 
-	data, err := RepoGetAllItems(table)
+	var repo DynamoCRUDRepository
+	data, err := repo.GetAll(table)
 	writeResponse(data, err, w)
 }
 
@@ -32,7 +34,8 @@ func GetByHashRange(w http.ResponseWriter, r *http.Request) {
 	rangeKey := vars["range"]
 	table := vars["table"]
 
-	data, err := RepoGetItemByHashRange(table, hash, rangeKey)
+	var repo DynamoCRUDRepository
+	data, err := repo.GetByHashRange(table, hash, rangeKey)
 	writeResponse(data, err, w)
 }
 
@@ -41,7 +44,8 @@ func GetByRange(w http.ResponseWriter, r *http.Request) {
 	rangeKey := vars["range"]
 	table := vars["table"]
 
-	data, err := RepoGetItemsByHash(table, rangeKey)
+	var repo DynamoCRUDRepository
+	data, err := repo.GetByOnlyHash(table, rangeKey)
 	writeResponse(data, err, w)
 }
 
@@ -77,6 +81,8 @@ func Search(w http.ResponseWriter, r *http.Request) {
 	case "faced":
 		field := getValue(queryParams["field"])
 		metric := getValue(queryParams["metric"])
+
+		fmt.Println(field, metric)
 		data, err := AggregationSearch(table, field, metric)
 		writeResponse(data, err, w)
 	case "geo":
@@ -104,10 +110,13 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 
 	var ok bool
 	var err error
+	var dynamoRepo DynamoCRUDRepository
 	if rangeKey != "" {
-		ok, err = RepoDeleteItemWithRange(table, hashKey, rangeKey)
+		ok, err = dynamoRepo.DeleteByHashRange(table, hashKey, rangeKey)
+		// TODO delete from elastisearch
 	} else {
-		ok, err = RepoDeleteItem(table, hashKey)
+		ok, err = dynamoRepo.DeleteByHash(table, hashKey)
+		// TODO delete from elastisearch
 	}
 	writeBoolResponse(ok, err, w)
 }
@@ -133,7 +142,10 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 		createTransferObject(w, err)
 	} else {
 		item := createBussinesObject(data)
-		ok, err := RepoAddItem(table, hashKey, rangeKey, item)
+
+		var dynamoRepo DynamoCRUDRepository
+		ok, err := dynamoRepo.Add(table, hashKey, rangeKey, item)
+		// TODO correct elastisearch
 		AddToElasticSearch(table, table, hashKey, rangeKey, item)
 		writeBoolResponse(ok, err, w)
 	}
@@ -167,7 +179,8 @@ func primaryKeySearch(rangeOperator, hashKey, rangeValue []string, table string,
 			writeErrorResponse("Missing hash value", 404, w)
 		}
 	} else if hashKey != nil && rangeValue != nil {
-		data, err := RepoGetItemsByRangeOp(table, hashKey[0], rangeOperator[0], rangeValue)
+		var repo DynamoCRUDRepository
+		data, err := repo.GetByOnlyRange(table, hashKey[0], rangeOperator[0], rangeValue)
 		writeResponse(data, err, w)
 	} else {
 		writeErrorResponse("Missing primary key value(s)", 404, w)
@@ -182,7 +195,8 @@ func secondaryIndexSearch(index, rangeOperator, hashKey, rangeValue []string, ta
 			writeErrorResponse("Missing hash value", 404, w)
 		}
 	} else if hashKey != nil && rangeValue != nil {
-		data, err := RepoGetItemsByIndexRangeOp(table, index[0], hashKey[0], rangeOperator[0], rangeValue)
+		var repo DynamoCRUDRepository
+		data, err := repo.GetByIndexRange(table, index[0], hashKey[0], rangeOperator[0], rangeValue)
 		writeResponse(data, err, w)
 	} else {
 		writeErrorResponse("Missing primary key value(s)", 404, w)
@@ -195,17 +209,19 @@ func getItemsByHash(table, hash string, w http.ResponseWriter) {
 		writeErrorResponse("Table "+table+" not found.", 404, w)
 	}
 
+	var repo DynamoCRUDRepository
 	if schema.HasRange() {
-		data, err := RepoGetItemsByHash(table, hash)
+		data, err := repo.GetByOnlyHash(table, hash)
 		writeResponse(data, err, w)
 	} else {
-		data, err := RepoGetItemByHash(table, hash)
+		data, err := repo.GetByHash(table, hash)
 		writeResponse(data, err, w)
 	}
 }
 
 func getItemsByIndexHash(table, indexName, hash string, w http.ResponseWriter) {
-	data, err := RepoGetItemByIndexHash(table, indexName, hash)
+	var repo DynamoCRUDRepository
+	data, err := repo.GetByIndexHash(table, indexName, hash)
 	writeResponse(data, err, w)
 }
 

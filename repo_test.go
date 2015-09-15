@@ -4,7 +4,8 @@ import (
 	. "gopkg.in/check.v1"
 )
 
-func (s *TableSuite) TestRepoGetAllItems(c *C) {
+func (s *TableSuite) TestGetAll(c *C) {
+	var repo DynamoCRUDRepository
 	expected := []map[string]string{
 		{
 			"id":         "3",
@@ -29,16 +30,17 @@ func (s *TableSuite) TestRepoGetAllItems(c *C) {
 		},
 	}
 
-	obtained, _ := RepoGetAllItems("users_test")
+	obtained, _ := repo.GetAll("users_test")
 
 	c.Check(obtained, DeepEquals, expected)
 
-	_, err := RepoGetAllItems("not_existed_table")
+	_, err := repo.GetAll("not_existed_table")
 
 	c.Check(err, ErrorMatches, "Table not_existed_table not found.")
 }
 
-func (s *TableSuite) TestRepoGetItemByHash(c *C) {
+func (s *TableSuite) TestGetByHash(c *C) {
+	var repo DynamoCRUDRepository
 	expected := map[string]string{
 		"id":         "2",
 		"first_name": "Ana",
@@ -46,12 +48,13 @@ func (s *TableSuite) TestRepoGetItemByHash(c *C) {
 		"email":      "ana@gmail.com",
 		"country":    "Portugal",
 	}
-	obtained, _ := RepoGetItemByHash("users_test", "2")
+	obtained, _ := repo.GetByHash("users_test", "2")
 
 	c.Check(obtained, DeepEquals, expected)
 }
 
-func (s *TableSuite) TestRepoGetItemByHashRange(c *C) {
+func (s *TableSuite) TestGetByHashRange(c *C) {
+	var repo DynamoCRUDRepository
 	expected := map[string]string{
 		"user_id":    "2",
 		"wins":       "8",
@@ -59,18 +62,19 @@ func (s *TableSuite) TestRepoGetItemByHashRange(c *C) {
 		"losts":      "0",
 		"top_score":  "123",
 	}
-	obtained, _ := RepoGetItemByHashRange("game_scores_test", "Game Y", "2")
+	obtained, _ := repo.GetByHashRange("game_scores_test", "Game Y", "2")
 
 	c.Check(obtained, DeepEquals, expected)
 
-	_, err := RepoGetItemByHashRange("not_existed_table", "1", "2")
+	_, err := repo.GetByHashRange("not_existed_table", "1", "2")
 	c.Check(err, ErrorMatches, "Table not_existed_table not found.")
 
-	_, err = RepoGetItemByHashRange("game_scores_test", "Game Y", "10")
+	_, err = repo.GetByHashRange("game_scores_test", "Game Y", "10")
 	c.Check(err, ErrorMatches, "Item not found")
 }
 
-func (s *TableSuite) TestRepoGetItemsByHash(c *C) {
+func (s *TableSuite) TestGetByOnlyHash(c *C) {
+	var repo DynamoCRUDRepository
 	expected := []map[string]string{
 		map[string]string{
 			"top_score":  "123",
@@ -88,18 +92,19 @@ func (s *TableSuite) TestRepoGetItemsByHash(c *C) {
 		},
 	}
 
-	obtained, _ := RepoGetItemsByHash("game_scores_test", "Game Y")
+	obtained, _ := repo.GetByOnlyHash("game_scores_test", "Game Y")
 	c.Check(obtained, DeepEquals, expected)
 
-	_, err := RepoGetItemsByHash("not_existed_table", "1")
+	_, err := repo.GetByOnlyHash("not_existed_table", "1")
 	c.Check(err, ErrorMatches, "Table not_existed_table not found.")
 
-	obtained, _ = RepoGetItemsByHash("game_scores_test", "not_existed_hash")
+	obtained, _ = repo.GetByOnlyHash("game_scores_test", "not_existed_hash")
 	expected = []map[string]string{}
 	c.Check(obtained, DeepEquals, expected)
 }
 
-func (s *TableSuite) TestRepoGetItemByIndexHash(c *C) {
+func (s *TableSuite) TestGetByIndexHash(c *C) {
+	var repo DynamoCRUDRepository
 	expected := []map[string]string{
 		map[string]string{
 			"top_score":  "123",
@@ -131,13 +136,13 @@ func (s *TableSuite) TestRepoGetItemByIndexHash(c *C) {
 		},
 	}
 
-	obtained, _ := RepoGetItemByIndexHash("game_scores_test", "wins_losts", "8")
+	obtained, _ := repo.GetByIndexHash("game_scores_test", "wins_losts", "8")
 	c.Check(obtained, DeepEquals, expected)
 
-	_, err := RepoGetItemByIndexHash("not_existed_table", "index", "1")
+	_, err := repo.GetByIndexHash("not_existed_table", "index", "1")
 	c.Check(err, ErrorMatches, "Table not_existed_table not found.")
 
-	obtained, _ = RepoGetItemByIndexHash("game_scores_test", "not_existed_index", "1")
+	obtained, _ = repo.GetByIndexHash("game_scores_test", "not_existed_index", "1")
 	expected = []map[string]string(nil)
 	c.Check(obtained, DeepEquals, expected)
 
@@ -150,11 +155,12 @@ func (s *TableSuite) TestRepoGetItemByIndexHash(c *C) {
 			"last_name":  "Sobkowiak",
 		},
 	}
-	obtained, _ = RepoGetItemByIndexHash("users_test", "email", "monika@gmail.com")
+	obtained, _ = repo.GetByIndexHash("users_test", "email", "monika@gmail.com")
 	c.Check(obtained, DeepEquals, expected)
 }
 
-func (s *TableSuite) TestRepoGetItemsByRangeOp(c *C) {
+func (s *TableSuite) TestGetByOnlyRange(c *C) {
+	var repo DynamoCRUDRepository
 	expectedGT := []map[string]string{
 		map[string]string{
 			"top_score":  "123",
@@ -172,7 +178,7 @@ func (s *TableSuite) TestRepoGetItemsByRangeOp(c *C) {
 		},
 	}
 
-	obtainedGT, _ := RepoGetItemsByRangeOp("game_scores_test", "Game Y", "GT", []string{"1"})
+	obtainedGT, _ := repo.GetByOnlyRange("game_scores_test", "Game Y", "GT", []string{"1"})
 	c.Check(obtainedGT, DeepEquals, expectedGT)
 
 	expectedGE := []map[string]string{
@@ -192,7 +198,7 @@ func (s *TableSuite) TestRepoGetItemsByRangeOp(c *C) {
 		},
 	}
 
-	obtainedGE, _ := RepoGetItemsByRangeOp("game_scores_test", "Game Y", "GE", []string{"2"})
+	obtainedGE, _ := repo.GetByOnlyRange("game_scores_test", "Game Y", "GE", []string{"2"})
 	c.Check(obtainedGE, DeepEquals, expectedGE)
 
 	expectedLT := []map[string]string{
@@ -205,7 +211,7 @@ func (s *TableSuite) TestRepoGetItemsByRangeOp(c *C) {
 		},
 	}
 
-	obtainedLT, _ := RepoGetItemsByRangeOp("game_scores_test", "Game Y", "LT", []string{"3"})
+	obtainedLT, _ := repo.GetByOnlyRange("game_scores_test", "Game Y", "LT", []string{"3"})
 	c.Check(obtainedLT, DeepEquals, expectedLT)
 
 	expectedLE := []map[string]string{
@@ -225,7 +231,7 @@ func (s *TableSuite) TestRepoGetItemsByRangeOp(c *C) {
 		},
 	}
 
-	obtainedLE, _ := RepoGetItemsByRangeOp("game_scores_test", "Game Y", "LE", []string{"3"})
+	obtainedLE, _ := repo.GetByOnlyRange("game_scores_test", "Game Y", "LE", []string{"3"})
 	c.Check(obtainedLE, DeepEquals, expectedLE)
 
 	expectedBETWEEN := []map[string]string{
@@ -245,11 +251,12 @@ func (s *TableSuite) TestRepoGetItemsByRangeOp(c *C) {
 		},
 	}
 
-	obtainedBETWEEN, _ := RepoGetItemsByRangeOp("game_scores_test", "Game Y", "BETWEEN", []string{"2", "4"})
+	obtainedBETWEEN, _ := repo.GetByOnlyRange("game_scores_test", "Game Y", "BETWEEN", []string{"2", "4"})
 	c.Check(obtainedBETWEEN, DeepEquals, expectedBETWEEN)
 }
 
-func (s *TableSuite) TestRepoGetItemsByIndexRangeOp(c *C) {
+func (s *TableSuite) TestGetByIndexRange(c *C) {
+	var repo DynamoCRUDRepository
 	expectedGT := []map[string]string{
 		map[string]string{
 			"top_score":  "333333",
@@ -260,7 +267,7 @@ func (s *TableSuite) TestRepoGetItemsByIndexRangeOp(c *C) {
 		},
 	}
 
-	obtainedGT, _ := RepoGetItemsByIndexRangeOp("game_scores_test", "wins_losts", "8", "GT", []string{"2"})
+	obtainedGT, _ := repo.GetByIndexRange("game_scores_test", "wins_losts", "8", "GT", []string{"2"})
 	c.Check(obtainedGT, DeepEquals, expectedGT)
 
 	expectedGE := []map[string]string{
@@ -287,7 +294,7 @@ func (s *TableSuite) TestRepoGetItemsByIndexRangeOp(c *C) {
 		},
 	}
 
-	obtainedGE, _ := RepoGetItemsByIndexRangeOp("game_scores_test", "wins_losts", "8", "GE", []string{"2"})
+	obtainedGE, _ := repo.GetByIndexRange("game_scores_test", "wins_losts", "8", "GE", []string{"2"})
 	c.Check(obtainedGE, DeepEquals, expectedGE)
 
 	expectedLT := []map[string]string{
@@ -300,7 +307,7 @@ func (s *TableSuite) TestRepoGetItemsByIndexRangeOp(c *C) {
 		},
 	}
 
-	obtainedLT, _ := RepoGetItemsByIndexRangeOp("game_scores_test", "wins_losts", "8", "LT", []string{"2"})
+	obtainedLT, _ := repo.GetByIndexRange("game_scores_test", "wins_losts", "8", "LT", []string{"2"})
 	c.Check(obtainedLT, DeepEquals, expectedLT)
 
 	expectedLE := []map[string]string{
@@ -327,7 +334,7 @@ func (s *TableSuite) TestRepoGetItemsByIndexRangeOp(c *C) {
 		},
 	}
 
-	obtainedLE, _ := RepoGetItemsByIndexRangeOp("game_scores_test", "wins_losts", "8", "LE", []string{"2"})
+	obtainedLE, _ := repo.GetByIndexRange("game_scores_test", "wins_losts", "8", "LE", []string{"2"})
 	c.Check(obtainedLE, DeepEquals, expectedLE)
 
 	expectedBETWEEN := []map[string]string{
@@ -340,12 +347,13 @@ func (s *TableSuite) TestRepoGetItemsByIndexRangeOp(c *C) {
 		},
 	}
 
-	obtainedBETWEEN, _ := RepoGetItemsByIndexRangeOp("game_scores_test", "wins_losts", "8", "BETWEEN", []string{"80", "100"})
+	obtainedBETWEEN, _ := repo.GetByIndexRange("game_scores_test", "wins_losts", "8", "BETWEEN", []string{"80", "100"})
 	c.Check(obtainedBETWEEN, DeepEquals, expectedBETWEEN)
 
 }
 
-func (s *TableSuite) TestAddItem(c *C) {
+func (s *TableSuite) TestAdd(c *C) {
+	var repo DynamoCRUDRepository
 	item := []Attribute{
 		Attribute{
 			Description: AttributeDefinition{Name: "first_name", Type: "S"},
@@ -365,7 +373,7 @@ func (s *TableSuite) TestAddItem(c *C) {
 		},
 	}
 
-	status, _ := RepoAddItem("users_test", "4", "", item)
+	status, _ := repo.Add("users_test", "4", "", item)
 	c.Check(status, Equals, true)
 
 	expected := map[string]string{
@@ -376,19 +384,21 @@ func (s *TableSuite) TestAddItem(c *C) {
 		"last_name":  "Test_last_name",
 	}
 
-	obtained, _ := RepoGetItemByHash("users_test", "4")
+	obtained, _ := repo.GetByHash("users_test", "4")
 	c.Check(obtained, DeepEquals, expected)
 }
 
-func (s *TableSuite) TestRepoDeleteItem(c *C) {
-	status, _ := RepoDeleteItem("users_test", "4")
+func (s *TableSuite) TestDeleteByHash(c *C) {
+	var repo DynamoCRUDRepository
+	status, _ := repo.DeleteByHash("users_test", "4")
 	c.Check(status, Equals, true)
 
-	_, err := RepoGetItemByHash("users_test", "4")
+	_, err := repo.GetByHash("users_test", "4")
 	c.Check(err, ErrorMatches, "Item not found")
 }
 
-func (s *TableSuite) TestAddItemHashRange(c *C) {
+func (s *TableSuite) TestAddByHashRange(c *C) {
+	var repo DynamoCRUDRepository
 	item := []Attribute{
 		Attribute{
 			Description: AttributeDefinition{Name: "top_score", Type: "N"},
@@ -404,7 +414,7 @@ func (s *TableSuite) TestAddItemHashRange(c *C) {
 		},
 	}
 
-	status, _ := RepoAddItem("game_scores_test", "test_hash_value", "1", item)
+	status, _ := repo.Add("game_scores_test", "test_hash_value", "1", item)
 	c.Check(status, Equals, true)
 
 	expected := map[string]string{
@@ -415,14 +425,15 @@ func (s *TableSuite) TestAddItemHashRange(c *C) {
 		"losts":      "333",
 	}
 
-	obtained, _ := RepoGetItemByHashRange("game_scores_test", "test_hash_value", "1")
+	obtained, _ := repo.GetByHashRange("game_scores_test", "test_hash_value", "1")
 	c.Check(obtained, DeepEquals, expected)
 }
 
-func (s *TableSuite) TestRepoDeleteItemWithRange(c *C) {
-	status, _ := RepoDeleteItemWithRange("game_scores_test", "test_hash_value", "1")
+func (s *TableSuite) TestDeleteByRange(c *C) {
+	var repo DynamoCRUDRepository
+	status, _ := repo.DeleteByHashRange("game_scores_test", "test_hash_value", "1")
 	c.Check(status, Equals, true)
 
-	_, err := RepoGetItemByHashRange("game_scores_test", "test_range_value", "1")
+	_, err := repo.GetByHashRange("game_scores_test", "test_range_value", "1")
 	c.Check(err, ErrorMatches, "Item not found")
 }

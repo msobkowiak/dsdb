@@ -158,6 +158,7 @@ func check(e error) {
 func Bootstrap(dbDescription DbDescription) {
 	auth := dbDescription.Authentication.Dynamo
 	db := Auth(auth.Region, auth.AccessKey, auth.SecretKey)
+	var dynamoRepo DynamoCRUDRepository
 
 	// cleanup the database
 	DeleteAllTables(db)
@@ -167,7 +168,7 @@ func Bootstrap(dbDescription DbDescription) {
 	CreateTable(dbDescription.Tables[tableName])
 	for i := range data[tableName] {
 		hash := strconv.FormatInt(int64(i+1), 10)
-		RepoAddItem(tableName, hash, "", data[tableName][i])
+		dynamoRepo.Add(tableName, hash, "", data[tableName][i])
 		AddToElasticSearch(tableName, tableName, hash, "", data[tableName][i])
 	}
 
@@ -175,7 +176,7 @@ func Bootstrap(dbDescription DbDescription) {
 	CreateTable(dbDescription.Tables[tableName])
 	for i := range data[tableName] {
 		rangeValue := strconv.FormatInt(int64(i+1), 10)
-		RepoAddItem(tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
+		dynamoRepo.Add(tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
 		AddToElasticSearch(tableName, tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
 	}
 
@@ -183,7 +184,7 @@ func Bootstrap(dbDescription DbDescription) {
 	CreateTable(dbDescription.Tables[tableName])
 	for i := range data[tableName] {
 		hash := strconv.FormatInt(int64(i+1), 10)
-		RepoAddItem(tableName, hash, "", data[tableName][i])
+		dynamoRepo.Add(tableName, hash, "", data[tableName][i])
 		AddToElasticSearch(tableName, tableName, hash, "", data[tableName][i])
 	}
 }
