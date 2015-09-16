@@ -158,10 +158,16 @@ func check(e error) {
 func Bootstrap(dbDescription DbDescription) {
 	auth := dbDescription.Authentication.Dynamo
 	db := Auth(auth.Region, auth.AccessKey, auth.SecretKey)
-	var dynamoRepo DynamoCRUDRepository
+	var (
+		dynamoRepo   DynamoCRUDRepository
+		dynamoClient DynamoClient
+		elasticRepo  ElasticCRUDRepository
+		elasticIndex ElasticIndex
+	)
 
-	// cleanup the database
-	DeleteAllTables(db)
+	// cleanup the databases
+	dynamoClient.DeleteAllTables(db)
+	elasticIndex.DeleteAll(dbDescription)
 
 	//create tables with example data
 	tableName := "users"
@@ -169,7 +175,7 @@ func Bootstrap(dbDescription DbDescription) {
 	for i := range data[tableName] {
 		hash := strconv.FormatInt(int64(i+1), 10)
 		dynamoRepo.Add(tableName, hash, "", data[tableName][i])
-		AddToElasticSearch(tableName, tableName, hash, "", data[tableName][i])
+		elasticRepo.Add(tableName, hash, "", data[tableName][i])
 	}
 
 	tableName = "game_scores"
@@ -177,7 +183,7 @@ func Bootstrap(dbDescription DbDescription) {
 	for i := range data[tableName] {
 		rangeValue := strconv.FormatInt(int64(i+1), 10)
 		dynamoRepo.Add(tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
-		AddToElasticSearch(tableName, tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
+		elasticRepo.Add(tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
 	}
 
 	tableName = "restaurants"
@@ -185,6 +191,7 @@ func Bootstrap(dbDescription DbDescription) {
 	for i := range data[tableName] {
 		hash := strconv.FormatInt(int64(i+1), 10)
 		dynamoRepo.Add(tableName, hash, "", data[tableName][i])
-		AddToElasticSearch(tableName, tableName, hash, "", data[tableName][i])
+		elasticRepo.Add(tableName, hash, "", data[tableName][i])
+		//AddToElasticSearch(tableName, tableName, hash, "", data[tableName][i])
 	}
 }

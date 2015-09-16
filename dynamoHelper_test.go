@@ -26,9 +26,10 @@ func (s *TableSuite) SetUpSuite(c *C) {
 }
 
 func (s *TableSuite) TearDownSuite(c *C) {
+	var client DynamoClient
 	dynamAuth := table_suite.Db.Authentication.Dynamo
 	db := Auth(dynamAuth.Region, dynamAuth.AccessKey, dynamAuth.SecretKey)
-	DeleteAllTables(db)
+	client.DeleteAllTables(db)
 }
 
 var table_suite = &TableSuite{

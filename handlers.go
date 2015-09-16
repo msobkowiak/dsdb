@@ -56,6 +56,8 @@ func Search(w http.ResponseWriter, r *http.Request) {
 	table := vars["table"]
 	searchType := getValue(queryParams["search_type"])
 
+	var elasticSearchRepo ElasticSeaarchRepository
+
 	switch searchType {
 	case "index":
 		index := queryParams["index"]
@@ -73,7 +75,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		query := getValue(queryParams["query"])
 
 		if field != "" && query != "" {
-			data, err := FullTextSearchQuery(table, field, query, getValue(queryParams["operator"]), getValue(queryParams["precision"]))
+			data, err := elasticSearchRepo.FullTextSearchQuery(table, field, query, getValue(queryParams["operator"]), getValue(queryParams["precision"]))
 			writeResponse(data, err, w)
 		} else {
 			writeErrorResponse("Missing search parameters", 404, w)
@@ -83,7 +85,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		metric := getValue(queryParams["metric"])
 
 		fmt.Println(field, metric)
-		data, err := AggregationSearch(table, field, metric)
+		data, err := elasticSearchRepo.AggregationSearch(table, field, metric)
 		writeResponse(data, err, w)
 	case "geo":
 		field := getValue(queryParams["field"])
@@ -94,7 +96,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		lonValue, _ := strconv.ParseFloat(lon, 64)
 
 		if field != "" && distance != "" {
-			data, err := GeoSearch(table, field, distance, latValue, lonValue)
+			data, err := elasticSearchRepo.GeoSearch(table, field, distance, latValue, lonValue)
 			writeResponse(data, err, w)
 		} else {
 			writeErrorResponse("Missing search parameters", 404, w)
@@ -108,15 +110,18 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	rangeKey := vars["range"]
 	table := vars["table"]
 
-	var ok bool
-	var err error
-	var dynamoRepo DynamoCRUDRepository
+	var (
+		ok          bool
+		err         error
+		dynamoRepo  DynamoCRUDRepository
+		elasticRepo ElasticCRUDRepository
+	)
 	if rangeKey != "" {
 		ok, err = dynamoRepo.DeleteByHashRange(table, hashKey, rangeKey)
-		// TODO delete from elastisearch
+		elasticRepo.DeleteByHashRange(table, hashKey, rangeKey)
 	} else {
 		ok, err = dynamoRepo.DeleteByHash(table, hashKey)
-		// TODO delete from elastisearch
+		elasticRepo.DeleteByHash(table, hashKey)
 	}
 	writeBoolResponse(ok, err, w)
 }
@@ -144,9 +149,9 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 		item := createBussinesObject(data)
 
 		var dynamoRepo DynamoCRUDRepository
+		var elasticRepo ElasticCRUDRepository
 		ok, err := dynamoRepo.Add(table, hashKey, rangeKey, item)
-		// TODO correct elastisearch
-		AddToElasticSearch(table, table, hashKey, rangeKey, item)
+		elasticRepo.Add(table, hashKey, rangeKey, item)
 		writeBoolResponse(ok, err, w)
 	}
 }

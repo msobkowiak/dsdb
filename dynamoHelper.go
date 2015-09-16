@@ -10,6 +10,9 @@ import (
 
 const TIMEOUT = 1 * time.Minute
 
+type DynamoClient struct {
+}
+
 func Auth(region, accessKey, secretKey string) dynamodb.Server {
 	dynamodbRegion := aws.Region{DynamoDBEndpoint: region}
 	dynamodbAuth := aws.Auth{AccessKey: accessKey, SecretKey: secretKey}
@@ -49,7 +52,7 @@ func GetDynamoTable(tableName string) (dynamodb.Table, error) {
 	return *db.NewTable(dynamoTab.TableName, pk), nil
 }
 
-func DeleteAllTables(db dynamodb.Server) {
+func (c DynamoClient) DeleteAllTables(db dynamodb.Server) {
 	tables, err := db.ListTables()
 	if err != nil {
 		log.Println(err)
