@@ -6,7 +6,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -15,7 +14,7 @@ func GetAllItems(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	table := vars["table"]
 
-	var repo DynamoCRUDRepository
+	var repo DynamoBaseRepository
 	data, err := repo.GetAll(table)
 	writeResponse(data, err, w)
 }
@@ -34,7 +33,7 @@ func GetByHashRange(w http.ResponseWriter, r *http.Request) {
 	rangeKey := vars["range"]
 	table := vars["table"]
 
-	var repo DynamoCRUDRepository
+	var repo DynamoBaseRepository
 	data, err := repo.GetByHashRange(table, hash, rangeKey)
 	writeResponse(data, err, w)
 }
@@ -44,64 +43,9 @@ func GetByRange(w http.ResponseWriter, r *http.Request) {
 	rangeKey := vars["range"]
 	table := vars["table"]
 
-	var repo DynamoCRUDRepository
+	var repo DynamoBaseRepository
 	data, err := repo.GetByOnlyHash(table, rangeKey)
 	writeResponse(data, err, w)
-}
-
-func Search(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	queryParams := r.URL.Query()
-
-	table := vars["table"]
-	searchType := getValue(queryParams["search_type"])
-
-	var elasticSearchRepo ElasticSeaarchRepository
-
-	switch searchType {
-	case "index":
-		index := queryParams["index"]
-		hashKey := queryParams["hash"]
-		rangeOperator := queryParams["range_operator"]
-		rangeValue := queryParams["range_value"]
-
-		if index[0] == "primary" {
-			primaryKeySearch(rangeOperator, hashKey, rangeValue, table, w)
-		} else {
-			secondaryIndexSearch(index, rangeOperator, hashKey, rangeValue, table, w)
-		}
-	case "text":
-		field := getValue(queryParams["field"])
-		query := getValue(queryParams["query"])
-
-		if field != "" && query != "" {
-			data, err := elasticSearchRepo.FullTextSearchQuery(table, field, query, getValue(queryParams["operator"]), getValue(queryParams["precision"]))
-			writeResponse(data, err, w)
-		} else {
-			writeErrorResponse("Missing search parameters", 404, w)
-		}
-	case "faced":
-		field := getValue(queryParams["field"])
-		metric := getValue(queryParams["metric"])
-
-		fmt.Println(field, metric)
-		data, err := elasticSearchRepo.AggregationSearch(table, field, metric)
-		writeResponse(data, err, w)
-	case "geo":
-		field := getValue(queryParams["field"])
-		distance := getValue(queryParams["distance"])
-		lat := getValue(queryParams["lat"])
-		latValue, _ := strconv.ParseFloat(lat, 64)
-		lon := getValue(queryParams["lon"])
-		lonValue, _ := strconv.ParseFloat(lon, 64)
-
-		if field != "" && distance != "" {
-			data, err := elasticSearchRepo.GeoSearch(table, field, distance, latValue, lonValue)
-			writeResponse(data, err, w)
-		} else {
-			writeErrorResponse("Missing search parameters", 404, w)
-		}
-	}
 }
 
 func DeleteItem(w http.ResponseWriter, r *http.Request) {
@@ -113,8 +57,8 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	var (
 		ok          bool
 		err         error
-		dynamoRepo  DynamoCRUDRepository
-		elasticRepo ElasticCRUDRepository
+		dynamoRepo  DynamoBaseRepository
+		elasticRepo ElasticBaseepository
 	)
 	if rangeKey != "" {
 		ok, err = dynamoRepo.DeleteByHashRange(table, hashKey, rangeKey)
@@ -146,28 +90,33 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(422) // unprocessable entity
 		createTransferObject(w, err)
 	} else {
-		item := createBussinesObject(data)
+		item := createBussinesObject(data, table)
 
-		var dynamoRepo DynamoCRUDRepository
-		var elasticRepo ElasticCRUDRepository
+		var dynamoRepo DynamoBaseRepository
+		var elasticRepo ElasticBaseepository
 		ok, err := dynamoRepo.Add(table, hashKey, rangeKey, item)
 		elasticRepo.Add(table, hashKey, rangeKey, item)
 		writeBoolResponse(ok, err, w)
 	}
 }
 
-func createBussinesObject(data map[string]interface{}) []Attribute {
+func createBussinesObject(data map[string]interface{}, tableName string) []Attribute {
+	table, _ := schema.GetTableDescription(tableName)
 	item := make([]Attribute, len(data))
 	count := 0
 	for key := range data {
+		fmt.Println(key)
 		item[count] = Attribute{
 			Description: AttributeDefinition{
 				Name: key,
+				Type: table.GetTypeOfAttribute(key),
 			},
 			Value: data[key],
 		}
 		count++
 	}
+
+	fmt.Println(item)
 
 	return item
 }
@@ -176,45 +125,13 @@ func createTransferObject(w http.ResponseWriter, data interface{}) {
 	json.NewEncoder(w).Encode(data)
 }
 
-func primaryKeySearch(rangeOperator, hashKey, rangeValue []string, table string, w http.ResponseWriter) {
-	if rangeOperator == nil {
-		if hashKey != nil {
-			getItemsByHash(table, hashKey[0], w)
-		} else {
-			writeErrorResponse("Missing hash value", 404, w)
-		}
-	} else if hashKey != nil && rangeValue != nil {
-		var repo DynamoCRUDRepository
-		data, err := repo.GetByOnlyRange(table, hashKey[0], rangeOperator[0], rangeValue)
-		writeResponse(data, err, w)
-	} else {
-		writeErrorResponse("Missing primary key value(s)", 404, w)
-	}
-}
-
-func secondaryIndexSearch(index, rangeOperator, hashKey, rangeValue []string, table string, w http.ResponseWriter) {
-	if rangeOperator == nil {
-		if hashKey != nil {
-			getItemsByIndexHash(table, index[0], hashKey[0], w)
-		} else {
-			writeErrorResponse("Missing hash value", 404, w)
-		}
-	} else if hashKey != nil && rangeValue != nil {
-		var repo DynamoCRUDRepository
-		data, err := repo.GetByIndexRange(table, index[0], hashKey[0], rangeOperator[0], rangeValue)
-		writeResponse(data, err, w)
-	} else {
-		writeErrorResponse("Missing primary key value(s)", 404, w)
-	}
-}
-
 func getItemsByHash(table, hash string, w http.ResponseWriter) {
-	schema, err := GetTableDescription(table, schema.Tables)
+	schema, err := schema.GetTableDescription(table)
 	if err != nil {
 		writeErrorResponse("Table "+table+" not found.", 404, w)
 	}
 
-	var repo DynamoCRUDRepository
+	var repo DynamoBaseRepository
 	if schema.HasRange() {
 		data, err := repo.GetByOnlyHash(table, hash)
 		writeResponse(data, err, w)
@@ -225,7 +142,7 @@ func getItemsByHash(table, hash string, w http.ResponseWriter) {
 }
 
 func getItemsByIndexHash(table, indexName, hash string, w http.ResponseWriter) {
-	var repo DynamoCRUDRepository
+	var repo DynamoBaseRepository
 	data, err := repo.GetByIndexHash(table, indexName, hash)
 	writeResponse(data, err, w)
 }

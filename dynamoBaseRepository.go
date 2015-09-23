@@ -5,11 +5,12 @@ import (
 	"strconv"
 )
 
-type DynamoCRUDRepository struct {
+type DynamoBaseRepository struct {
+	table DynamoTable
 }
 
-func (r DynamoCRUDRepository) GetAll(tableName string) ([]map[string]string, error) {
-	table, err := GetDynamoTable(tableName)
+func (r DynamoBaseRepository) GetAll(tableName string) ([]map[string]string, error) {
+	table, err := r.table.GetByName(tableName)
 	if err != nil {
 		return nil, err
 	}
@@ -19,11 +20,11 @@ func (r DynamoCRUDRepository) GetAll(tableName string) ([]map[string]string, err
 		return nil, err
 	}
 
-	return getDataAsArray(items), nil
+	return r.getDataAsArray(items), nil
 }
 
-func (r DynamoCRUDRepository) GetByHash(tableName, hash string) (map[string]string, error) {
-	table, err := GetDynamoTable(tableName)
+func (r DynamoBaseRepository) GetByHash(tableName, hash string) (map[string]string, error) {
+	table, err := r.table.GetByName(tableName)
 	if err != nil {
 		return nil, err
 	}
@@ -32,11 +33,11 @@ func (r DynamoCRUDRepository) GetByHash(tableName, hash string) (map[string]stri
 		return nil, err
 	}
 
-	return getData(item), nil
+	return r.getData(item), nil
 }
 
-func (r DynamoCRUDRepository) GetByHashRange(tableName, hashKey, rangeKey string) (map[string]string, error) {
-	table, err := GetDynamoTable(tableName)
+func (r DynamoBaseRepository) GetByHashRange(tableName, hashKey, rangeKey string) (map[string]string, error) {
+	table, err := r.table.GetByName(tableName)
 	if err != nil {
 		return nil, err
 	}
@@ -45,101 +46,101 @@ func (r DynamoCRUDRepository) GetByHashRange(tableName, hashKey, rangeKey string
 		return nil, err
 	}
 
-	return getData(item), nil
+	return r.getData(item), nil
 }
 
-func (r DynamoCRUDRepository) GetByOnlyHash(tableName, hashValue string) ([]map[string]string, error) {
-	table, err := GetDynamoTable(tableName)
+func (r DynamoBaseRepository) GetByOnlyHash(tableName, hashValue string) ([]map[string]string, error) {
+	table, err := r.table.GetByName(tableName)
 	if err != nil {
 		return nil, err
 	}
 	hashName := table.Key.KeyAttribute.Name
 
-	atrrComaparations := buildQueryHash(tableName, hashName, hashValue)
+	atrrComaparations := r.buildQueryHash(tableName, hashName, hashValue)
 
 	items, err := table.Query(atrrComaparations)
 	if err != nil {
 		return nil, err
 	}
 
-	return getDataAsArray(items), nil
+	return r.getDataAsArray(items), nil
 }
 
-func (r DynamoCRUDRepository) GetByIndexHash(tableName, indexName, hashValue string) ([]map[string]string, error) {
-	table, err := GetDynamoTable(tableName)
+func (r DynamoBaseRepository) GetByIndexHash(tableName, indexName, hashValue string) ([]map[string]string, error) {
+	table, err := r.table.GetByName(tableName)
 	if err != nil {
 		return nil, err
 	}
-	schema, _ := GetTableDescription(tableName, schema.Tables)
-	index, err := schema.GetIndexByName(indexName)
+	t, _ := schema.GetTableDescription(tableName)
+	index, err := t.GetIndexByName(indexName)
 	if err != nil {
 		return nil, err
 	}
 
-	atrrComaparations := buildQueryHash(tableName, index.Key.Hash, hashValue)
+	atrrComaparations := r.buildQueryHash(tableName, index.Key.Hash, hashValue)
 
 	items, err := table.QueryOnIndex(atrrComaparations, indexName)
 	if err != nil {
 		return nil, err
 	}
 
-	return getDataAsArray(items), nil
+	return r.getDataAsArray(items), nil
 }
 
-func (r DynamoCRUDRepository) GetByOnlyRange(tableName, hashValue, operator string, rangeValue []string) ([]map[string]string, error) {
-	table, err := GetDynamoTable(tableName)
+func (r DynamoBaseRepository) GetByOnlyRange(tableName, hashValue, operator string, rangeValue []string) ([]map[string]string, error) {
+	table, err := r.table.GetByName(tableName)
 	if err != nil {
 		return nil, err
 	}
-	schema, _ := GetTableDescription(tableName, schema.Tables)
+	t, _ := schema.GetTableDescription(tableName)
 
 	var atrrComaparations []dynamodb.AttributeComparison
-	atrrComaparations = buildQueryRange(tableName, schema.PrimaryKey.Hash, hashValue, operator, schema.PrimaryKey.Range, rangeValue)
+	atrrComaparations = r.buildQueryRange(tableName, t.PrimaryKey.Hash, hashValue, operator, t.PrimaryKey.Range, rangeValue)
 	items, err := table.Query(atrrComaparations)
 	if err != nil {
 		return nil, err
 	}
 
-	return getDataAsArray(items), nil
+	return r.getDataAsArray(items), nil
 }
 
-func (r DynamoCRUDRepository) GetByIndexRange(tableName, indexName, hashValue, operator string, rangeValue []string) ([]map[string]string, error) {
-	table, err := GetDynamoTable(tableName)
+func (r DynamoBaseRepository) GetByIndexRange(tableName, indexName, hashValue, operator string, rangeValue []string) ([]map[string]string, error) {
+	table, err := r.table.GetByName(tableName)
 	if err != nil {
 		return nil, err
 	}
-	schema, _ := GetTableDescription(tableName, schema.Tables)
-	index, err := schema.GetIndexByName(indexName)
+	t, _ := schema.GetTableDescription(tableName)
+	index, err := t.GetIndexByName(indexName)
 	if err != nil {
 		return nil, err
 	}
 
 	var atrrComaparations []dynamodb.AttributeComparison
-	atrrComaparations = buildQueryRange(tableName, index.Key.Hash, hashValue, operator, index.Key.Range, rangeValue)
+	atrrComaparations = r.buildQueryRange(tableName, index.Key.Hash, hashValue, operator, index.Key.Range, rangeValue)
 
 	items, err := table.QueryOnIndex(atrrComaparations, indexName)
 	if err != nil {
 		return nil, err
 	}
 
-	return getDataAsArray(items), nil
+	return r.getDataAsArray(items), nil
 }
 
-func (r DynamoCRUDRepository) DeleteByHash(tableName, hash string) (bool, error) {
-	schema, err := GetTableDescription(tableName, schema.Tables)
+func (r DynamoBaseRepository) DeleteByHash(tableName, hash string) (bool, error) {
+	t, err := schema.GetTableDescription(tableName)
 	if err != nil {
 		return false, err
 	}
 
-	if schema.HasRange() {
-		return deleteItems(tableName, hash, schema)
+	if t.HasRange() {
+		return r.deleteItems(tableName, hash, t)
 	}
 
-	return deleteItem(tableName, hash)
+	return r.deleteItem(tableName, hash)
 }
 
-func (r DynamoCRUDRepository) DeleteByHashRange(tableName, hashKey, rangeKey string) (bool, error) {
-	table, err := GetDynamoTable(tableName)
+func (r DynamoBaseRepository) DeleteByHashRange(tableName, hashKey, rangeKey string) (bool, error) {
+	table, err := r.table.GetByName(tableName)
 	if err != nil {
 		return false, err
 	}
@@ -152,12 +153,12 @@ func (r DynamoCRUDRepository) DeleteByHashRange(tableName, hashKey, rangeKey str
 	return status, nil
 }
 
-func (r DynamoCRUDRepository) Add(tableName, hashKey, rangeKey string, item []Attribute) (bool, error) {
-	t, err := GetTableDescription(tableName, schema.Tables)
+func (r DynamoBaseRepository) Add(tableName, hashKey, rangeKey string, item []Attribute) (bool, error) {
+	t, err := schema.GetTableDescription(tableName)
 	if err != nil {
 		return false, err
 	}
-	table, err := GetDynamoTable(tableName)
+	table, err := r.table.GetByName(tableName)
 	if err != nil {
 		return false, err
 	}
@@ -174,14 +175,14 @@ func (r DynamoCRUDRepository) Add(tableName, hashKey, rangeKey string, item []At
 		attr[i] = dynamodb.Attribute{
 			Type:  attrType,
 			Name:  item[i].Description.Name,
-			Value: getStringValue(item[i].Value),
+			Value: r.getStringValue(item[i].Value),
 		}
 	}
 
 	return table.PutItem(hashKey, rangeKey, attr)
 }
 
-func getData(item map[string]*dynamodb.Attribute) map[string]string {
+func (r DynamoBaseRepository) getData(item map[string]*dynamodb.Attribute) map[string]string {
 	var data = make(map[string]string)
 	for key := range item {
 		data[key] = item[key].Value
@@ -190,25 +191,25 @@ func getData(item map[string]*dynamodb.Attribute) map[string]string {
 	return data
 }
 
-func getDataAsArray(items []map[string]*dynamodb.Attribute) []map[string]string {
+func (r DynamoBaseRepository) getDataAsArray(items []map[string]*dynamodb.Attribute) []map[string]string {
 	itemCount := len(items)
 	var data = make([]map[string]string, itemCount)
 	for k := 0; k < itemCount; k++ {
-		data[k] = getData(items[k])
+		data[k] = r.getData(items[k])
 	}
 
 	return data
 }
 
-func buildQueryRange(tableName, hashName, hashValue, operator, rangeName string, rangeValue []string) []dynamodb.AttributeComparison {
-	schema, _ := GetTableDescription(tableName, schema.Tables)
-	rangeType := schema.GetTypeOfAttribute(rangeName)
+func (r DynamoBaseRepository) buildQueryRange(tableName, hashName, hashValue, operator, rangeName string, rangeValue []string) []dynamodb.AttributeComparison {
+	t, _ := schema.GetTableDescription(tableName)
+	rangeType := t.GetTypeOfAttribute(rangeName)
 
 	var atrrs1 = make([]dynamodb.Attribute, 1)
 	atrrs1[0] = dynamodb.Attribute{
 		Value: hashValue,
 		Name:  hashName,
-		Type:  schema.GetTypeOfAttribute(hashName),
+		Type:  t.GetTypeOfAttribute(hashName),
 	}
 
 	var atrrs2 []dynamodb.Attribute
@@ -235,7 +236,7 @@ func buildQueryRange(tableName, hashName, hashValue, operator, rangeName string,
 	atrrs2[0] = dynamodb.Attribute{
 		Value: rangeValue[0],
 		Name:  rangeName,
-		Type:  schema.GetTypeOfAttribute(rangeName),
+		Type:  t.GetTypeOfAttribute(rangeName),
 	}
 
 	var atrrComaparations = make([]dynamodb.AttributeComparison, 2)
@@ -253,14 +254,14 @@ func buildQueryRange(tableName, hashName, hashValue, operator, rangeName string,
 	return atrrComaparations
 }
 
-func buildQueryHash(tableName, hashName, hashValue string) []dynamodb.AttributeComparison {
-	schema, _ := GetTableDescription(tableName, schema.Tables)
+func (r DynamoBaseRepository) buildQueryHash(tableName, hashName, hashValue string) []dynamodb.AttributeComparison {
+	t, _ := schema.GetTableDescription(tableName)
 
 	var atrrs = make([]dynamodb.Attribute, 1)
 	atrrs[0] = dynamodb.Attribute{
 		Value: hashValue,
 		Name:  hashName,
-		Type:  schema.GetTypeOfAttribute(hashName),
+		Type:  t.GetTypeOfAttribute(hashName),
 	}
 
 	var atrrComaparations = make([]dynamodb.AttributeComparison, 1)
@@ -272,8 +273,8 @@ func buildQueryHash(tableName, hashName, hashValue string) []dynamodb.AttributeC
 	return atrrComaparations
 }
 
-func deleteItem(tableName, hash string) (bool, error) {
-	table, _ := GetDynamoTable(tableName)
+func (r DynamoBaseRepository) deleteItem(tableName, hash string) (bool, error) {
+	table, _ := r.table.GetByName(tableName)
 
 	status, err := table.DeleteItem(&dynamodb.Key{HashKey: hash})
 	if err != nil {
@@ -283,11 +284,10 @@ func deleteItem(tableName, hash string) (bool, error) {
 	return status, nil
 }
 
-func deleteItems(tableName, hash string, schema TableDescription) (bool, error) {
-	table, _ := GetDynamoTable(tableName)
-	var repo DynamoCRUDRepository
+func (r DynamoBaseRepository) deleteItems(tableName, hash string, schema TableDescription) (bool, error) {
+	table, _ := r.table.GetByName(tableName)
 
-	items, _ := repo.GetByOnlyHash(tableName, hash)
+	items, _ := r.GetByOnlyHash(tableName, hash)
 	for i := range items {
 		status, err := table.DeleteItem(&dynamodb.Key{HashKey: items[i][schema.PrimaryKey.Hash], RangeKey: items[i][schema.PrimaryKey.Range]})
 		if err != nil {
@@ -298,7 +298,7 @@ func deleteItems(tableName, hash string, schema TableDescription) (bool, error) 
 	return true, nil
 }
 
-func getStringValue(itemValue interface{}) string {
+func (r DynamoBaseRepository) getStringValue(itemValue interface{}) string {
 	var value string
 
 	switch itemValue.(type) {

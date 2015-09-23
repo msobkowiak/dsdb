@@ -125,7 +125,7 @@ var data = map[string][][]Attribute{
 		},
 		[]Attribute{
 			Attribute{Description: AttributeDefinition{Name: "name", Type: "S"}, Value: "Pasta Cafe3"},
-			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.147832,-8.611693}"},
+			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.147832,-8.611693"},
 			Attribute{Description: AttributeDefinition{Name: "descripion", Type: "S"}, Value: "The best tradicional portugues restaurant in town. Our speciality: pasta, pasta, pasta!"},
 		},
 		[]Attribute{
@@ -156,22 +156,25 @@ func check(e error) {
 }
 
 func Bootstrap(dbDescription DbDescription) {
-	auth := dbDescription.Authentication.Dynamo
-	db := Auth(auth.Region, auth.AccessKey, auth.SecretKey)
+
 	var (
-		dynamoRepo   DynamoCRUDRepository
+		dynamoRepo   DynamoBaseRepository
 		dynamoClient DynamoClient
-		elasticRepo  ElasticCRUDRepository
+		dynamoTable  DynamoTable
+		elasticRepo  ElasticBaseepository
 		elasticIndex ElasticIndex
 	)
 
+	auth := dbDescription.Authentication.Dynamo
+	db := dynamoClient.Auth(auth.Region, auth.AccessKey, auth.SecretKey)
+
 	// cleanup the databases
-	dynamoClient.DeleteAllTables(db)
+	dynamoClient.DeleteAll(db)
 	elasticIndex.DeleteAll(dbDescription)
 
 	//create tables with example data
 	tableName := "users"
-	CreateTable(dbDescription.Tables[tableName])
+	dynamoTable.Create(dbDescription.Tables[tableName])
 	for i := range data[tableName] {
 		hash := strconv.FormatInt(int64(i+1), 10)
 		dynamoRepo.Add(tableName, hash, "", data[tableName][i])
@@ -179,7 +182,7 @@ func Bootstrap(dbDescription DbDescription) {
 	}
 
 	tableName = "game_scores"
-	CreateTable(dbDescription.Tables[tableName])
+	dynamoTable.Create(dbDescription.Tables[tableName])
 	for i := range data[tableName] {
 		rangeValue := strconv.FormatInt(int64(i+1), 10)
 		dynamoRepo.Add(tableName, hashKeys[tableName][i], rangeValue, data[tableName][i])
@@ -187,11 +190,10 @@ func Bootstrap(dbDescription DbDescription) {
 	}
 
 	tableName = "restaurants"
-	CreateTable(dbDescription.Tables[tableName])
+	dynamoTable.Create(dbDescription.Tables[tableName])
 	for i := range data[tableName] {
 		hash := strconv.FormatInt(int64(i+1), 10)
 		dynamoRepo.Add(tableName, hash, "", data[tableName][i])
 		elasticRepo.Add(tableName, hash, "", data[tableName][i])
-		//AddToElasticSearch(tableName, tableName, hash, "", data[tableName][i])
 	}
 }

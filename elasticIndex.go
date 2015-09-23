@@ -30,7 +30,7 @@ func (i ElasticIndex) Create(indexName string) error {
 			log.Println("Error on creating index")
 		}
 
-		table, err := GetTableDescription(indexName, schema.Tables)
+		table, err := schema.GetTableDescription(indexName)
 		if err != nil {
 			return err
 		}
@@ -62,9 +62,14 @@ func (i ElasticIndex) Delete(indexName string) error {
 	return nil
 }
 
-func (i ElasticIndex) DeleteAll(schema DbDescription) {
+func (i ElasticIndex) DeleteAll(schema DbDescription) error {
 
 	for tableName, _ := range schema.Tables {
-		i.Delete(tableName)
+		err := i.Delete(tableName)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }

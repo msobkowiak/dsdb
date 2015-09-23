@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/dynamodb"
 	"log"
 	"strconv"
@@ -10,78 +9,30 @@ import (
 
 const TIMEOUT = 1 * time.Minute
 
-type DynamoClient struct {
+type DynamoTable struct {
 }
 
-func Auth(region, accessKey, secretKey string) dynamodb.Server {
-	dynamodbRegion := aws.Region{DynamoDBEndpoint: region}
-	dynamodbAuth := aws.Auth{AccessKey: accessKey, SecretKey: secretKey}
+func (d DynamoTable) Create(t TableDescription) dynamodb.Table {
 
-	return dynamodb.Server{
-		Auth:   dynamodbAuth,
-		Region: dynamodbRegion,
-	}
-}
-
-func ConvertToDynamo(t TableDescription) dynamodb.TableDescriptionT {
-
-	var table = dynamodb.TableDescriptionT{
-		TableName: t.Name,
-	}
-
-	addAttributeDefinition(&table, t)
-	addPrimaryKey(&table, t.PrimaryKey, t.Attributes)
-	addSecondaryIndexes(&table, t.SecondaryIndexes, t.Attributes)
-	addThroughput(&table)
-
-	return table
-}
-
-func GetDynamoTable(tableName string) (dynamodb.Table, error) {
-	tabDesc, err := GetTableDescription(tableName, schema.Tables)
-	if err != nil {
-		return dynamodb.Table{}, err
-	}
-
-	auth := schema.Authentication.Dynamo
-	db := Auth(auth.Region, auth.AccessKey, auth.SecretKey)
-
-	dynamoTab := ConvertToDynamo(tabDesc)
-	pk, _ := dynamoTab.BuildPrimaryKey()
-
-	return *db.NewTable(dynamoTab.TableName, pk), nil
-}
-
-func (c DynamoClient) DeleteAllTables(db dynamodb.Server) {
-	tables, err := db.ListTables()
-	if err != nil {
-		log.Println(err)
-	} else {
-		for i := range tables {
-			deleteTable(db, tables[i])
-		}
-	}
-}
-
-func CreateTable(t TableDescription) dynamodb.Table {
+	var client DynamoClient
 	// get dynamoDB Server
 	dynamAuth := schema.Authentication.Dynamo
-	db := Auth(dynamAuth.Region, dynamAuth.AccessKey, dynamAuth.SecretKey)
+	db := client.Auth(dynamAuth.Region, dynamAuth.AccessKey, dynamAuth.SecretKey)
 
 	// create a new table
-	tab := ConvertToDynamo(t)
+	tab := d.Map(t)
 	pk, _ := tab.BuildPrimaryKey()
 	table := db.NewTable(tab.TableName, pk)
 	_, err := db.CreateTable(tab)
 	if err != nil {
 		log.Println(err)
 	}
-	waitUntilStatus(table, "ACTIVE")
+	d.waitUntilStatus(table, "ACTIVE")
 
 	return *table
 }
 
-func AddItems(t dynamodb.Table, data [][]dynamodb.Attribute, hashKeys []string) {
+func (d DynamoTable) AddItems(t dynamodb.Table, data [][]dynamodb.Attribute, hashKeys []string) {
 	if hashKeys != nil {
 		for i := range data {
 			ok, err := t.PutItem(hashKeys[i], strconv.FormatInt(int64(i+1), 10), data[i])
@@ -99,7 +50,39 @@ func AddItems(t dynamodb.Table, data [][]dynamodb.Attribute, hashKeys []string) 
 	}
 }
 
-func waitUntilTableDeleted(db dynamodb.Server, t *dynamodb.Table, tableName string) {
+func (d DynamoTable) GetByName(tableName string) (dynamodb.Table, error) {
+	var client DynamoClient
+	tabDesc, err := schema.GetTableDescription(tableName)
+	if err != nil {
+		return dynamodb.Table{}, err
+	}
+
+	auth := schema.Authentication.Dynamo
+	db := client.Auth(auth.Region, auth.AccessKey, auth.SecretKey)
+
+	dynamoTab := d.Map(tabDesc)
+	pk, _ := dynamoTab.BuildPrimaryKey()
+
+	return *db.NewTable(dynamoTab.TableName, pk), nil
+}
+
+func (d DynamoTable) Delete(db dynamodb.Server, tableName string) {
+	tabDescription, err := db.DescribeTable(tableName)
+	if err != nil {
+		log.Println(err)
+	} else {
+		_, err := db.DeleteTable(*tabDescription)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
+	pk, _ := tabDescription.BuildPrimaryKey()
+	table := db.NewTable(tableName, pk)
+	d.waitUntilTableDeleted(db, table, tableName)
+}
+
+func (d DynamoTable) waitUntilTableDeleted(db dynamodb.Server, t *dynamodb.Table, tableName string) {
 	done := make(chan bool)
 	timeout := time.After(TIMEOUT)
 	go func() {
@@ -112,7 +95,7 @@ func waitUntilTableDeleted(db dynamodb.Server, t *dynamodb.Table, tableName stri
 				if err != nil {
 					log.Fatal(err)
 				}
-				if findTableByName(tables, tableName) {
+				if d.findTableByName(tables, tableName) {
 					time.Sleep(5 * time.Second)
 				} else {
 					done <- true
@@ -130,7 +113,7 @@ func waitUntilTableDeleted(db dynamodb.Server, t *dynamodb.Table, tableName stri
 	}
 }
 
-func waitUntilStatus(t *dynamodb.Table, status string) {
+func (d DynamoTable) waitUntilStatus(t *dynamodb.Table, status string) {
 	done := make(chan bool)
 	timeout := time.After(TIMEOUT)
 	go func() {
@@ -160,23 +143,7 @@ func waitUntilStatus(t *dynamodb.Table, status string) {
 	}
 }
 
-func deleteTable(db dynamodb.Server, tableName string) {
-	tabDescription, err := db.DescribeTable(tableName)
-	if err != nil {
-		log.Println(err)
-	} else {
-		_, err := db.DeleteTable(*tabDescription)
-		if err != nil {
-			log.Println(err)
-		}
-	}
-
-	pk, _ := tabDescription.BuildPrimaryKey()
-	table := db.NewTable(tableName, pk)
-	waitUntilTableDeleted(db, table, tableName)
-}
-
-func findTableByName(tables []string, name string) bool {
+func (d DynamoTable) findTableByName(tables []string, name string) bool {
 	for _, t := range tables {
 		if t == name {
 			return true
@@ -185,13 +152,13 @@ func findTableByName(tables []string, name string) bool {
 	return false
 }
 
-func addHash(hashName string, atrrs []AttributeDefinition, keySchema []dynamodb.KeySchemaT) {
+func (d DynamoTable) addHash(hashName string, atrrs []AttributeDefinition, keySchema []dynamodb.KeySchemaT) {
 	if existsInAttributes(atrrs, hashName) {
 		keySchema[0] = dynamodb.KeySchemaT{hashName, "HASH"}
 	}
 }
 
-func addRange(rangeName string, atrrs []AttributeDefinition, keySchema []dynamodb.KeySchemaT) {
+func (d DynamoTable) addRange(rangeName string, atrrs []AttributeDefinition, keySchema []dynamodb.KeySchemaT) {
 	if existsInAttributes(atrrs, rangeName) {
 		keySchema[1] = dynamodb.KeySchemaT{rangeName, "RANGE"}
 	}
@@ -207,7 +174,7 @@ func existsInAttributes(attrs []AttributeDefinition, keyName string) bool {
 	return false
 }
 
-func addAttributeDefinition(table *dynamodb.TableDescriptionT, schemaTable TableDescription) {
+func (d DynamoTable) addAttributeDefinition(table *dynamodb.TableDescriptionT, schemaTable TableDescription) {
 	attrs := ExcludeNonKeyAttributes(schemaTable)
 	table.AttributeDefinitions = make([]dynamodb.AttributeDefinitionT, len(attrs))
 	for i := range attrs {
@@ -215,18 +182,18 @@ func addAttributeDefinition(table *dynamodb.TableDescriptionT, schemaTable Table
 	}
 }
 
-func addPrimaryKey(table *dynamodb.TableDescriptionT, key KeyDefinition, attrs []AttributeDefinition) {
+func (d DynamoTable) addPrimaryKey(table *dynamodb.TableDescriptionT, key KeyDefinition, attrs []AttributeDefinition) {
 	if key.Type == "HASH" {
 		table.KeySchema = make([]dynamodb.KeySchemaT, 1)
-		addHash(key.Hash, attrs, table.KeySchema)
+		d.addHash(key.Hash, attrs, table.KeySchema)
 	} else if key.Type == "RANGE" {
 		table.KeySchema = make([]dynamodb.KeySchemaT, 2)
-		addHash(key.Hash, attrs, table.KeySchema)
-		addRange(key.Range, attrs, table.KeySchema)
+		d.addHash(key.Hash, attrs, table.KeySchema)
+		d.addRange(key.Range, attrs, table.KeySchema)
 	}
 }
 
-func addSecondaryIndexes(table *dynamodb.TableDescriptionT, indexes []SecondaryIndexDefinition, attrs []AttributeDefinition) {
+func (d DynamoTable) addSecondaryIndexes(table *dynamodb.TableDescriptionT, indexes []SecondaryIndexDefinition, attrs []AttributeDefinition) {
 	table.GlobalSecondaryIndexes = make([]dynamodb.GlobalSecondaryIndexT, len(indexes))
 
 	for i := range indexes {
@@ -237,11 +204,11 @@ func addSecondaryIndexes(table *dynamodb.TableDescriptionT, indexes []SecondaryI
 
 		if indexes[i].Key.Type == "HASH" {
 			table.GlobalSecondaryIndexes[i].KeySchema = make([]dynamodb.KeySchemaT, 1)
-			addHash(indexes[i].Key.Hash, attrs, table.GlobalSecondaryIndexes[i].KeySchema)
+			d.addHash(indexes[i].Key.Hash, attrs, table.GlobalSecondaryIndexes[i].KeySchema)
 		} else if indexes[i].Key.Type == "RANGE" {
 			table.GlobalSecondaryIndexes[i].KeySchema = make([]dynamodb.KeySchemaT, 2)
-			addHash(indexes[i].Key.Hash, attrs, table.GlobalSecondaryIndexes[i].KeySchema)
-			addRange(indexes[i].Key.Range, attrs, table.GlobalSecondaryIndexes[i].KeySchema)
+			d.addHash(indexes[i].Key.Hash, attrs, table.GlobalSecondaryIndexes[i].KeySchema)
+			d.addRange(indexes[i].Key.Range, attrs, table.GlobalSecondaryIndexes[i].KeySchema)
 		}
 		table.GlobalSecondaryIndexes[i].Projection = dynamodb.ProjectionT{"ALL"}
 		table.GlobalSecondaryIndexes[i].ProvisionedThroughput = dynamodb.ProvisionedThroughputT{
@@ -251,9 +218,23 @@ func addSecondaryIndexes(table *dynamodb.TableDescriptionT, indexes []SecondaryI
 	}
 }
 
-func addThroughput(table *dynamodb.TableDescriptionT) {
+func (d DynamoTable) addThroughput(table *dynamodb.TableDescriptionT) {
 	table.ProvisionedThroughput = dynamodb.ProvisionedThroughputT{
 		ReadCapacityUnits:  10,
 		WriteCapacityUnits: 10,
 	}
+}
+
+func (d DynamoTable) Map(t TableDescription) dynamodb.TableDescriptionT {
+
+	var table = dynamodb.TableDescriptionT{
+		TableName: t.Name,
+	}
+
+	d.addAttributeDefinition(&table, t)
+	d.addPrimaryKey(&table, t.PrimaryKey, t.Attributes)
+	d.addSecondaryIndexes(&table, t.SecondaryIndexes, t.Attributes)
+	d.addThroughput(&table)
+
+	return table
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"math"
 
@@ -50,7 +51,7 @@ func (r *ElasticSeaarchRepository) FullTextSearchQuery(index, field, query, oper
 	return nil, errors.New("No results found")
 }
 
-func (r *ElasticSeaarchRepository) GeoSearch(tableName, field, distance string, lat, lon float64) ([]map[string]string, error) {
+func (r *ElasticSeaarchRepository) GeoSearch(tableName, field, distance string, lat, lon float64) ([]map[string]interface{}, error) {
 	client, err := elastic.NewClient()
 	if err != nil {
 		return nil, err
@@ -71,10 +72,12 @@ func (r *ElasticSeaarchRepository) GeoSearch(tableName, field, distance string, 
 	builder.PostFilter(f)
 
 	searchResult, err := builder.Do()
+
 	if searchResult.Hits != nil {
-		var result = make([]map[string]string, searchResult.Hits.TotalHits)
+		var result = make([]map[string]interface{}, searchResult.Hits.TotalHits)
 		for i, hit := range searchResult.Hits.Hits {
-			var t map[string]string
+			var t map[string]interface{}
+			fmt.Println(*hit.Source)
 			err := json.Unmarshal(*hit.Source, &t)
 			if err != nil {
 				log.Println(err)
@@ -203,7 +206,7 @@ func round(val float64, places int) float64 {
 
 func isCalculable(index, metric, field string) (bool, error) {
 	if metric != "count" {
-		table, err := GetTableDescription(index, schema.Tables)
+		table, err := schema.GetTableDescription(index)
 		if err != nil {
 			return false, err
 		}

@@ -95,16 +95,16 @@ func (t TableDescription) HasGeoPoint() bool {
 	return false
 }
 
-func GetTableDescription(tableName string, tables map[string]TableDescription) (TableDescription, error) {
-	if tables[tableName].Name != "" {
-		return tables[tableName], nil
+func (s DbDescription) GetTableDescription(tableName string) (TableDescription, error) {
+	if s.Tables[tableName].Name != "" {
+		return s.Tables[tableName], nil
 	} else {
 		return TableDescription{}, errors.New("Table " + tableName + " not found.")
 	}
 }
 
 func GetHashName(tableName string, schema DbDescription) (string, error) {
-	table, err := GetTableDescription(tableName, schema.Tables)
+	table, err := schema.GetTableDescription(tableName)
 	if err != nil {
 		return "", err
 	}
@@ -113,7 +113,7 @@ func GetHashName(tableName string, schema DbDescription) (string, error) {
 }
 
 func GetRangeName(tableName string, schema DbDescription) (string, error) {
-	table, err := GetTableDescription(tableName, schema.Tables)
+	table, err := schema.GetTableDescription(tableName)
 	if err != nil {
 		return "", err
 	}

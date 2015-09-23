@@ -10,6 +10,8 @@ import (
 
 func Test(t *testing.T) { TestingT(t) }
 
+var table DynamoTable
+
 type TableSuite struct {
 	Db       DbDescription
 	Data     map[string][][]dynamodb.Attribute
@@ -18,18 +20,19 @@ type TableSuite struct {
 
 func (s *TableSuite) SetUpSuite(c *C) {
 	schema = table_suite.Db
+	var t DynamoTable
 
-	users := CreateTable(table_suite.Db.Tables["users_test"])
-	games := CreateTable(table_suite.Db.Tables["game_scores_test"])
-	AddItems(users, table_suite.Data["users_test"], nil)
-	AddItems(games, table_suite.Data["game_scores_test"], table_suite.HashKeys["game_scores_test"])
+	users := t.Create(table_suite.Db.Tables["users_test"])
+	games := t.Create(table_suite.Db.Tables["game_scores_test"])
+	t.AddItems(users, table_suite.Data["users_test"], nil)
+	t.AddItems(games, table_suite.Data["game_scores_test"], table_suite.HashKeys["game_scores_test"])
 }
 
 func (s *TableSuite) TearDownSuite(c *C) {
 	var client DynamoClient
 	dynamAuth := table_suite.Db.Authentication.Dynamo
-	db := Auth(dynamAuth.Region, dynamAuth.AccessKey, dynamAuth.SecretKey)
-	client.DeleteAllTables(db)
+	db := client.Auth(dynamAuth.Region, dynamAuth.AccessKey, dynamAuth.SecretKey)
+	client.DeleteAll(db)
 }
 
 var table_suite = &TableSuite{
@@ -189,21 +192,7 @@ var table_suite = &TableSuite{
 
 var _ = Suite(table_suite)
 
-func (s *TableSuite) TestAuth(c *C) {
-	region := "http://127.0.0.1:4567"
-	accessKey := "key"
-	secretKey := "secret"
-	obtained := Auth(region, accessKey, secretKey)
-
-	expected := dynamodb.Server{
-		Auth:   aws.Auth{AccessKey: "key", SecretKey: "secret"},
-		Region: aws.Region{DynamoDBEndpoint: "http://127.0.0.1:4567"},
-	}
-
-	c.Check(obtained, Equals, expected)
-}
-
-func (s *TableSuite) TestConvertToDynamo(c *C) {
+func (s *TableSuite) MapTest(c *C) {
 	var expected = dynamodb.TableDescriptionT{
 		TableName: "users_test",
 		AttributeDefinitions: []dynamodb.AttributeDefinitionT{
@@ -244,12 +233,12 @@ func (s *TableSuite) TestConvertToDynamo(c *C) {
 		},
 	}
 
-	obtained := ConvertToDynamo(table_suite.Db.Tables["users_test"])
+	obtained := table.Map(table_suite.Db.Tables["users_test"])
 
 	c.Check(obtained, DeepEquals, expected)
 }
 
-func (s *TableSuite) TestGetDynamoTable(c *C) {
+func (s *TableSuite) TestGetByName(c *C) {
 	expected := dynamodb.Table{
 		Server: &dynamodb.Server{
 			Auth:   aws.Auth{AccessKey: "access", SecretKey: "secret"},
@@ -263,11 +252,11 @@ func (s *TableSuite) TestGetDynamoTable(c *C) {
 			},
 		},
 	}
-	obtained, _ := GetDynamoTable("users_test")
+	obtained, _ := table.GetByName("users_test")
 
 	c.Check(obtained, DeepEquals, expected)
 
-	_, err := GetDynamoTable("not_existed_table")
+	_, err := table.GetByName("not_existed_table")
 
 	c.Check(err, ErrorMatches, "Table not_existed_table not found.")
 }

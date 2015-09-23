@@ -5,7 +5,7 @@ import (
 )
 
 func (s *TableSuite) TestGetAll(c *C) {
-	var repo DynamoCRUDRepository
+	var repo DynamoBaseRepository
 	expected := []map[string]string{
 		{
 			"id":         "3",
@@ -40,7 +40,7 @@ func (s *TableSuite) TestGetAll(c *C) {
 }
 
 func (s *TableSuite) TestGetByHash(c *C) {
-	var repo DynamoCRUDRepository
+	var repo DynamoBaseRepository
 	expected := map[string]string{
 		"id":         "2",
 		"first_name": "Ana",
@@ -54,7 +54,7 @@ func (s *TableSuite) TestGetByHash(c *C) {
 }
 
 func (s *TableSuite) TestGetByHashRange(c *C) {
-	var repo DynamoCRUDRepository
+	var repo DynamoBaseRepository
 	expected := map[string]string{
 		"user_id":    "2",
 		"wins":       "8",
@@ -74,7 +74,7 @@ func (s *TableSuite) TestGetByHashRange(c *C) {
 }
 
 func (s *TableSuite) TestGetByOnlyHash(c *C) {
-	var repo DynamoCRUDRepository
+	var repo DynamoBaseRepository
 	expected := []map[string]string{
 		map[string]string{
 			"top_score":  "123",
@@ -104,7 +104,7 @@ func (s *TableSuite) TestGetByOnlyHash(c *C) {
 }
 
 func (s *TableSuite) TestGetByIndexHash(c *C) {
-	var repo DynamoCRUDRepository
+	var repo DynamoBaseRepository
 	expected := []map[string]string{
 		map[string]string{
 			"top_score":  "123",
@@ -160,7 +160,7 @@ func (s *TableSuite) TestGetByIndexHash(c *C) {
 }
 
 func (s *TableSuite) TestGetByOnlyRange(c *C) {
-	var repo DynamoCRUDRepository
+	var repo DynamoBaseRepository
 	expectedGT := []map[string]string{
 		map[string]string{
 			"top_score":  "123",
@@ -256,7 +256,7 @@ func (s *TableSuite) TestGetByOnlyRange(c *C) {
 }
 
 func (s *TableSuite) TestGetByIndexRange(c *C) {
-	var repo DynamoCRUDRepository
+	var repo DynamoBaseRepository
 	expectedGT := []map[string]string{
 		map[string]string{
 			"top_score":  "333333",
@@ -353,7 +353,7 @@ func (s *TableSuite) TestGetByIndexRange(c *C) {
 }
 
 func (s *TableSuite) TestAdd(c *C) {
-	var repo DynamoCRUDRepository
+	var repo DynamoBaseRepository
 	item := []Attribute{
 		Attribute{
 			Description: AttributeDefinition{Name: "first_name", Type: "S"},
@@ -389,7 +389,7 @@ func (s *TableSuite) TestAdd(c *C) {
 }
 
 func (s *TableSuite) TestDeleteByHash(c *C) {
-	var repo DynamoCRUDRepository
+	var repo DynamoBaseRepository
 	status, _ := repo.DeleteByHash("users_test", "4")
 	c.Check(status, Equals, true)
 
@@ -398,7 +398,7 @@ func (s *TableSuite) TestDeleteByHash(c *C) {
 }
 
 func (s *TableSuite) TestAddByHashRange(c *C) {
-	var repo DynamoCRUDRepository
+	var repo DynamoBaseRepository
 	item := []Attribute{
 		Attribute{
 			Description: AttributeDefinition{Name: "top_score", Type: "N"},
@@ -430,7 +430,7 @@ func (s *TableSuite) TestAddByHashRange(c *C) {
 }
 
 func (s *TableSuite) TestDeleteByRange(c *C) {
-	var repo DynamoCRUDRepository
+	var repo DynamoBaseRepository
 	status, _ := repo.DeleteByHashRange("game_scores_test", "test_hash_value", "1")
 	c.Check(status, Equals, true)
 
