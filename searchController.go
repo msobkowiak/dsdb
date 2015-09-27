@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -44,7 +43,6 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		field := getValue(queryParams["field"])
 		metric := getValue(queryParams["metric"])
 
-		fmt.Println(field, metric)
 		data, err := elasticSearchRepo.AggregationSearch(table, field, metric)
 		writeResponse(data, err, w)
 	case "geo":
@@ -57,7 +55,6 @@ func Search(w http.ResponseWriter, r *http.Request) {
 
 		if field != "" && distance != "" {
 			data, err := elasticSearchRepo.GeoSearch(table, field, distance, latValue, lonValue)
-			fmt.Println(data)
 			writeResponse(data, err, w)
 		} else {
 			writeErrorResponse("Missing search parameters", 404, w)

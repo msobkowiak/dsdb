@@ -38,10 +38,10 @@ func (s *TableSuite) TestGetIndexByName(c *C) {
 
 func (s *TableSuite) TestGetHashName(c *C) {
 	expected := "id"
-	obtained, _ := GetHashName("users_test", table_suite.Db)
+	obtained, _ := table_suite.Db.GetHashName("users_test")
 	c.Check(obtained, Equals, expected)
 
-	_, err := GetHashName("not_existet_table", table_suite.Db)
+	_, err := table_suite.Db.GetHashName("not_existet_table")
 	c.Check(err, ErrorMatches, "Table not_existet_table not found.")
 }
 
@@ -56,13 +56,13 @@ func (s *TableSuite) TestGeGeoPointName(c *C) {
 
 func (s *TableSuite) TestGetRangeName(c *C) {
 	expected := "user_id"
-	obtained, _ := GetRangeName("game_scores_test", table_suite.Db)
+	obtained, _ := table_suite.Db.GetRangeName("game_scores_test")
 	c.Check(obtained, Equals, expected)
 
-	obtained, _ = GetRangeName("users_test", table_suite.Db)
+	obtained, _ = table_suite.Db.GetRangeName("users_test")
 	c.Check(obtained, Equals, "")
 
-	_, err := GetHashName("not_existet_table", table_suite.Db)
+	_, err := table_suite.Db.GetHashName("not_existet_table")
 	c.Check(err, ErrorMatches, "Table not_existet_table not found.")
 }
 
@@ -92,6 +92,6 @@ func (s *TableSuite) TestExcludeNonKeyAttributes(c *C) {
 		},
 	}
 
-	obtained := ExcludeNonKeyAttributes(testData)
+	obtained := testData.ExcludeNonKeyAttributes()
 	c.Check(obtained, DeepEquals, expected)
 }

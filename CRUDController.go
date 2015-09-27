@@ -10,6 +10,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const dataSizeLimit = 1048576
+
 func GetAllItems(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	table := vars["table"]
@@ -76,7 +78,7 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 	hashKey := vars["hash"]
 	rangeKey := vars["range"]
 
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, dataSizeLimit))
 	if err != nil {
 		panic(err)
 	}
@@ -115,8 +117,6 @@ func createBussinesObject(data map[string]interface{}, tableName string) []Attri
 		}
 		count++
 	}
-
-	fmt.Println(item)
 
 	return item
 }

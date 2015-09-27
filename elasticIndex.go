@@ -40,7 +40,7 @@ func (i ElasticIndex) Create(indexName string) error {
 				return err
 			} else {
 				var mapper GeoPointMapper
-				mapper.MapIndex(indexName, field, client)
+				mapper.MapToIndex(indexName, field, client)
 			}
 		}
 	}

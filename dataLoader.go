@@ -21,7 +21,6 @@ func LoadSchema(filePath string) DbDescription {
 			Attributes        []AttributeDefinition
 			Primary_key       KeyDefinition
 			Secondary_indexes []SecondaryIndexDefinition
-			Full_text_search  []TextSearch
 		}
 	}
 

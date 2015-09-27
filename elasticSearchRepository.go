@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"math"
 
@@ -77,7 +76,6 @@ func (r *ElasticSeaarchRepository) GeoSearch(tableName, field, distance string, 
 		var result = make([]map[string]interface{}, searchResult.Hits.TotalHits)
 		for i, hit := range searchResult.Hits.Hits {
 			var t map[string]interface{}
-			fmt.Println(*hit.Source)
 			err := json.Unmarshal(*hit.Source, &t)
 			if err != nil {
 				log.Println(err)

@@ -3,8 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-
-	"fmt"
 )
 
 var schema DbDescription
@@ -14,7 +12,7 @@ func main() {
 
 	Bootstrap(schema)
 
-	fmt.Println("Done creating tables...")
+	log.Println("Done creating tables...")
 
 	router := NewRouter()
 

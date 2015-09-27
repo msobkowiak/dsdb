@@ -92,12 +92,12 @@ func (r ElasticBaseepository) mapToDocument(tableName, hashKey, rangeKey string,
 	}
 
 	if rangeKey != "" {
-		hashName, err := GetHashName(tableName, schema)
+		hashName, err := schema.GetHashName(tableName)
 		if err != nil {
 			log.Println(err)
 		}
 
-		rangeName, err := GetRangeName(tableName, schema)
+		rangeName, err := schema.GetRangeName(tableName)
 		if err != nil {
 			log.Println(err)
 		}

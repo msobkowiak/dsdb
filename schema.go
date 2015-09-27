@@ -4,6 +4,8 @@ import (
 	"errors"
 )
 
+const defaultDataType = "S"
+
 type DbDescription struct {
 	Name           string
 	Authentication Authentication
@@ -49,13 +51,6 @@ type DynamoAuth struct {
 	SecretKey string
 }
 
-type TextSearch struct {
-	Field     string
-	Query     string
-	Operator  string
-	Precision string
-}
-
 func (t TableDescription) HasRange() bool {
 	if t.PrimaryKey.Range != "" {
 		return true
@@ -71,8 +66,7 @@ func (t TableDescription) GetTypeOfAttribute(name string) string {
 		}
 	}
 
-	// Return the defualt value
-	return "S"
+	return defaultDataType
 }
 
 func (t TableDescription) GetIndexByName(name string) (SecondaryIndexDefinition, error) {
@@ -103,8 +97,8 @@ func (s DbDescription) GetTableDescription(tableName string) (TableDescription, 
 	}
 }
 
-func GetHashName(tableName string, schema DbDescription) (string, error) {
-	table, err := schema.GetTableDescription(tableName)
+func (s DbDescription) GetHashName(tableName string) (string, error) {
+	table, err := s.GetTableDescription(tableName)
 	if err != nil {
 		return "", err
 	}
@@ -112,8 +106,8 @@ func GetHashName(tableName string, schema DbDescription) (string, error) {
 	return table.PrimaryKey.Hash, nil
 }
 
-func GetRangeName(tableName string, schema DbDescription) (string, error) {
-	table, err := schema.GetTableDescription(tableName)
+func (s DbDescription) GetRangeName(tableName string) (string, error) {
+	table, err := s.GetTableDescription(tableName)
 	if err != nil {
 		return "", err
 	}
@@ -131,10 +125,10 @@ func (t TableDescription) GetGeoPointName() (string, error) {
 	return "", errors.New("No geo point found")
 }
 
-func ExcludeNonKeyAttributes(table TableDescription) []AttributeDefinition {
+func (t TableDescription) ExcludeNonKeyAttributes() []AttributeDefinition {
 	var newAttr = []AttributeDefinition{}
-	for _, attr := range table.Attributes {
-		if isKeySchemaAttribute(attr, table) {
+	for _, attr := range t.Attributes {
+		if t.isKeySchemaAttribute(attr) {
 			newAttr = append(newAttr, attr)
 		}
 	}
@@ -142,24 +136,24 @@ func ExcludeNonKeyAttributes(table TableDescription) []AttributeDefinition {
 	return newAttr
 }
 
-func isKeySchemaAttribute(attr AttributeDefinition, table TableDescription) bool {
-	if isPrimaryKeyAttribute(attr, table) || isSecondaryIndexAttribute(attr, table) {
+func (t TableDescription) isKeySchemaAttribute(attr AttributeDefinition) bool {
+	if t.isPrimaryKeyAttribute(attr) || t.isSecondaryIndexAttribute(attr) {
 		return true
 	}
 
 	return false
 }
 
-func isPrimaryKeyAttribute(attr AttributeDefinition, table TableDescription) bool {
-	if attr.Name == table.PrimaryKey.Hash || attr.Name == table.PrimaryKey.Range {
+func (t TableDescription) isPrimaryKeyAttribute(attr AttributeDefinition) bool {
+	if attr.Name == t.PrimaryKey.Hash || attr.Name == t.PrimaryKey.Range {
 		return true
 	}
 
 	return false
 }
 
-func isSecondaryIndexAttribute(attr AttributeDefinition, table TableDescription) bool {
-	for _, index := range table.SecondaryIndexes {
+func (t TableDescription) isSecondaryIndexAttribute(attr AttributeDefinition) bool {
+	for _, index := range t.SecondaryIndexes {
 		if attr.Name == index.Key.Hash || attr.Name == index.Key.Range {
 			return true
 		}

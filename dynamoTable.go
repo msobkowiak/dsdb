@@ -175,7 +175,7 @@ func existsInAttributes(attrs []AttributeDefinition, keyName string) bool {
 }
 
 func (d DynamoTable) addAttributeDefinition(table *dynamodb.TableDescriptionT, schemaTable TableDescription) {
-	attrs := ExcludeNonKeyAttributes(schemaTable)
+	attrs := schemaTable.ExcludeNonKeyAttributes()
 	table.AttributeDefinitions = make([]dynamodb.AttributeDefinitionT, len(attrs))
 	for i := range attrs {
 		table.AttributeDefinitions[i] = dynamodb.AttributeDefinitionT{attrs[i].Name, attrs[i].Type}

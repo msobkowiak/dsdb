@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"log"
 	"strconv"
 	"strings"
 
@@ -17,7 +16,7 @@ type geoPoint struct {
 	Lon float64 `json:"lon"`
 }
 
-func (m *GeoPointMapper) MapIndex(indexName, field string, client *elastic.Client) {
+func (m *GeoPointMapper) MapToIndex(indexName, field string, client *elastic.Client) error {
 	mapping := `{
 		"` + indexName + `":{
 			"properties":{
@@ -30,14 +29,16 @@ func (m *GeoPointMapper) MapIndex(indexName, field string, client *elastic.Clien
 
 	_, err := client.PutMapping().Index(indexName).Type(indexName).BodyString(mapping).Do()
 	if err != nil {
-		log.Println(err)
+		return err
 	}
+
+	return nil
 }
 
 func (m *GeoPointMapper) MapStringToGeoPoint(latLon string) (geoPoint, error) {
 	latlon := strings.SplitN(latLon, ",", 2)
 	if len(latlon) != 2 {
-		return geoPoint{}, errors.New("elastic: " + latLon + " is not a valid geo point string")
+		return geoPoint{}, errors.New(latLon + " is not a valid geo point string")
 	}
 	latValue, err := strconv.ParseFloat(latlon[0], 64)
 	if err != nil {
