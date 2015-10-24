@@ -7,10 +7,10 @@ import (
 	"github.com/olivere/elastic"
 )
 
-type ElasticBaseepository struct {
+type ElasticBaseRepository struct {
 }
 
-func (r ElasticBaseepository) Add(tableName, hashKey, rangeKey string, item []Attribute) (bool, error) {
+func (r ElasticBaseRepository) Add(tableName, hashKey, rangeKey string, item []Attribute) (bool, error) {
 	client, err := elastic.NewClient()
 	if err != nil {
 		return false, err
@@ -42,7 +42,7 @@ func (r ElasticBaseepository) Add(tableName, hashKey, rangeKey string, item []At
 	return true, nil
 }
 
-func (r ElasticBaseepository) DeleteByHash(tableName, hash string) (bool, error) {
+func (r ElasticBaseRepository) DeleteByHash(tableName, hash string) (bool, error) {
 	client, err := elastic.NewClient()
 	if err != nil {
 		return false, err
@@ -60,7 +60,7 @@ func (r ElasticBaseepository) DeleteByHash(tableName, hash string) (bool, error)
 	return true, nil
 }
 
-func (r ElasticBaseepository) DeleteByHashRange(tableName, hashKey, rangeKey string) (bool, error) {
+func (r ElasticBaseRepository) DeleteByHashRange(tableName, hashKey, rangeKey string) (bool, error) {
 	client, err := elastic.NewClient()
 	if err != nil {
 		return false, err
@@ -78,7 +78,7 @@ func (r ElasticBaseepository) DeleteByHashRange(tableName, hashKey, rangeKey str
 	return true, nil
 }
 
-func (r ElasticBaseepository) mapToDocument(tableName, hashKey, rangeKey string, item []Attribute) (map[string]string, map[string]interface{}) {
+func (r ElasticBaseRepository) mapToDocument(tableName, hashKey, rangeKey string, item []Attribute) (map[string]string, map[string]interface{}) {
 	data := map[string]interface{}{}
 
 	for i := range item {

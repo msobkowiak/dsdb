@@ -100,37 +100,37 @@ var data = map[string][][]Attribute{
 	"restaurants": [][]Attribute{
 		[]Attribute{
 			Attribute{Description: AttributeDefinition{Name: "name", Type: "S"}, Value: "Portuguese Food"},
-			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.158915,-8.6191053"},
+			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.15871926,-8.63339683"},
 			Attribute{Description: AttributeDefinition{Name: "descripion", Type: "S"}, Value: "The best tradicional portugues restaurant in town. Our speciality is cotfish!"},
 		},
 		[]Attribute{
 			Attribute{Description: AttributeDefinition{Name: "name", Type: "S"}, Value: "Italian Food"},
-			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.158915,-8.631091"},
+			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.1614979,-8.62962028"},
 			Attribute{Description: AttributeDefinition{Name: "descripion", Type: "S"}, Value: "The best tradicional italian passta restaurant in town."},
 		},
 		[]Attribute{
 			Attribute{Description: AttributeDefinition{Name: "name", Type: "S"}, Value: "Pasta Cafe"},
-			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.159238,-8.621091"},
+			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.14907386,-8.61118814"},
 			Attribute{Description: AttributeDefinition{Name: "descripion", Type: "S"}, Value: "The best tradicional portugues restaurant in town. Our speciality: pasta, pasta, pasta!"},
 		},
 		[]Attribute{
 			Attribute{Description: AttributeDefinition{Name: "name", Type: "S"}, Value: "Pasta Cafe1"},
-			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.154941,-8.638"},
+			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.1469087,-8.61110231"},
 			Attribute{Description: AttributeDefinition{Name: "descripion", Type: "S"}, Value: "The best tradicional portugues restaurant in town. Our speciality: pasta, pasta, pasta!"},
 		},
 		[]Attribute{
 			Attribute{Description: AttributeDefinition{Name: "name", Type: "S"}, Value: "Pasta Cafe2"},
-			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.15002,-8.635297"},
+			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.14530903,-8.61170313"},
 			Attribute{Description: AttributeDefinition{Name: "descripion", Type: "S"}, Value: "The best tradicional portugues restaurant in town. Our speciality: pasta, pasta, pasta!"},
 		},
 		[]Attribute{
 			Attribute{Description: AttributeDefinition{Name: "name", Type: "S"}, Value: "Pasta Cafe3"},
-			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.147832,-8.611693"},
+			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.14265897,-8.61125252"},
 			Attribute{Description: AttributeDefinition{Name: "descripion", Type: "S"}, Value: "The best tradicional portugues restaurant in town. Our speciality: pasta, pasta, pasta!"},
 		},
 		[]Attribute{
 			Attribute{Description: AttributeDefinition{Name: "name", Type: "S"}, Value: "Pasta Cafe4"},
-			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.147379,-8.605642"},
+			Attribute{Description: AttributeDefinition{Name: "location", Type: "G"}, Value: "41.1387968,-8.60927841"},
 			Attribute{Description: AttributeDefinition{Name: "descripion", Type: "S"}, Value: "The best tradicional portugues restaurant in town. Our speciality: pasta, pasta, pasta!"},
 		},
 	},
@@ -161,7 +161,7 @@ func Bootstrap(dbDescription DbDescription) {
 		dynamoRepo   DynamoBaseRepository
 		dynamoClient DynamoClient
 		dynamoTable  DynamoTable
-		elasticRepo  ElasticBaseepository
+		elasticRepo  ElasticBaseRepository
 		elasticIndex ElasticIndex
 	)
 

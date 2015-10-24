@@ -39,7 +39,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		} else {
 			writeErrorResponse("Missing search parameters", 404, w)
 		}
-	case "faced":
+	case "aggregation":
 		field := getValue(queryParams["field"])
 		metric := getValue(queryParams["metric"])
 

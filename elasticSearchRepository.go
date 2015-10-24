@@ -12,7 +12,7 @@ import (
 type ElasticSeaarchRepository struct {
 }
 
-func (r *ElasticSeaarchRepository) FullTextSearchQuery(index, field, query, operator, precision string) ([]map[string]string, error) {
+func (r *ElasticSeaarchRepository) FullTextSearchQuery(index, field, query, operator, precision string) ([]map[string]interface{}, error) {
 	client, err := elastic.NewClient()
 	if err != nil {
 		return nil, err
@@ -22,7 +22,9 @@ func (r *ElasticSeaarchRepository) FullTextSearchQuery(index, field, query, oper
 		Operator(operator)
 
 	if precision != "" {
-		matchQuery.MinimumShouldMatch(precision + "%")
+		matchQuery = elastic.NewMatchQuery(field, query).
+			Operator(operator).
+			MinimumShouldMatch(precision + "%")
 	}
 
 	searchResult, err := client.Search().
@@ -35,9 +37,9 @@ func (r *ElasticSeaarchRepository) FullTextSearchQuery(index, field, query, oper
 	}
 
 	if searchResult.Hits != nil {
-		var result = make([]map[string]string, searchResult.Hits.TotalHits)
+		var result = make([]map[string]interface{}, searchResult.Hits.TotalHits)
 		for i, hit := range searchResult.Hits.Hits {
-			var t map[string]string
+			var t map[string]interface{}
 			err := json.Unmarshal(*hit.Source, &t)
 			if err != nil {
 				log.Println(err)
@@ -65,8 +67,6 @@ func (r *ElasticSeaarchRepository) GeoSearch(tableName, field, distance string, 
 	f = f.Lat(lat)
 	f = f.Lon(lon)
 	f = f.Distance(distance)
-	f = f.DistanceType("plane")
-	f = f.OptimizeBbox("memory")
 
 	builder.PostFilter(f)
 

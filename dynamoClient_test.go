@@ -7,11 +7,18 @@ import (
 	. "gopkg.in/check.v1"
 )
 
-func (s *TableSuite) TestAuth(c *C) {
+type DynamoClientSuite struct{}
+
+var dynamoClient_suite = &DynamoClientSuite{}
+
+var _ = Suite(dynamoClient_suite)
+
+func (s *DynamoClientSuite) TestAuth(c *C) {
 	var client DynamoClient
 	region := "http://127.0.0.1:4567"
 	accessKey := "key"
 	secretKey := "secret"
+
 	obtained := client.Auth(region, accessKey, secretKey)
 
 	expected := dynamodb.Server{

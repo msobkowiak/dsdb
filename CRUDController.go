@@ -60,7 +60,7 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 		ok          bool
 		err         error
 		dynamoRepo  DynamoBaseRepository
-		elasticRepo ElasticBaseepository
+		elasticRepo ElasticBaseRepository
 	)
 	if rangeKey != "" {
 		ok, err = dynamoRepo.DeleteByHashRange(table, hashKey, rangeKey)
@@ -95,7 +95,7 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 		item := createBussinesObject(data, table)
 
 		var dynamoRepo DynamoBaseRepository
-		var elasticRepo ElasticBaseepository
+		var elasticRepo ElasticBaseRepository
 		ok, err := dynamoRepo.Add(table, hashKey, rangeKey, item)
 		elasticRepo.Add(table, hashKey, rangeKey, item)
 		writeBoolResponse(ok, err, w)
