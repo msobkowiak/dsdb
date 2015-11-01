@@ -161,3 +161,43 @@ func (t TableDescription) isSecondaryIndexAttribute(attr AttributeDefinition) bo
 
 	return false
 }
+
+func (t TableDescription) GetAllRequiredAttributes() []string {
+	var requested []string
+	for _, atrr := range t.Attributes {
+		if atrr.Required == true {
+			requested = append(requested, atrr.Name)
+		}
+	}
+
+	return requested
+}
+
+func hasAttribute(item []Attribute, attrName string) bool {
+	for _, elem := range item {
+		if elem.Description.Name == attrName {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isPartOfPrimaryKey(r, tableName string) bool {
+	table, err := schema.GetTableDescription(tableName)
+	if err != nil {
+		return false
+	}
+
+	result := false
+
+	if table.PrimaryKey.Hash == r {
+		result = true
+	}
+
+	if table.HasRange() && table.PrimaryKey.Range == r {
+		result = true
+	}
+
+	return result
+}

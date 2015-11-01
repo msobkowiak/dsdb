@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -64,10 +63,14 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	)
 	if rangeKey != "" {
 		ok, err = dynamoRepo.DeleteByHashRange(table, hashKey, rangeKey)
-		elasticRepo.DeleteByHashRange(table, hashKey, rangeKey)
+		if err == nil {
+			elasticRepo.DeleteByHashRange(table, hashKey, rangeKey)
+		}
 	} else {
 		ok, err = dynamoRepo.DeleteByHash(table, hashKey)
-		elasticRepo.DeleteByHash(table, hashKey)
+		if err == nil {
+			elasticRepo.DeleteByHash(table, hashKey)
+		}
 	}
 	writeBoolResponse(ok, err, w)
 }
@@ -93,12 +96,28 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 		createTransferObject(w, err)
 	} else {
 		item := createBussinesObject(data, table)
+		t, _ := schema.GetTableDescription(table)
+		requested := t.GetAllRequiredAttributes()
+		var errs []ValidationError
+		for _, r := range requested {
+			if !hasAttribute(item, r) && !isPartOfPrimaryKey(r, table) {
+				var v ValidationError
+				error := v.New("Missing required attribute: " + r)
+				errs = append(errs, error)
+			}
+		}
 
-		var dynamoRepo DynamoBaseRepository
-		var elasticRepo ElasticBaseRepository
-		ok, err := dynamoRepo.Add(table, hashKey, rangeKey, item)
-		elasticRepo.Add(table, hashKey, rangeKey, item)
-		writeBoolResponse(ok, err, w)
+		if len(errs) > 0 {
+			writeErrorsResponse(errs, 400, w)
+		} else {
+			var dynamoRepo DynamoBaseRepository
+			var elasticRepo ElasticBaseRepository
+			ok, err := dynamoRepo.Add(table, hashKey, rangeKey, item)
+			if err == nil {
+				elasticRepo.Add(table, hashKey, rangeKey, item)
+			}
+			writeBoolResponse(ok, err, w)
+		}
 	}
 }
 
@@ -107,7 +126,6 @@ func createBussinesObject(data map[string]interface{}, tableName string) []Attri
 	item := make([]Attribute, len(data))
 	count := 0
 	for key := range data {
-		fmt.Println(key)
 		item[count] = Attribute{
 			Description: AttributeDefinition{
 				Name: key,
@@ -170,8 +188,15 @@ func writeBoolResponse(ok bool, err error, w http.ResponseWriter) {
 
 func writeErrorResponse(message string, statusCode int, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusNotFound)
+	w.WriteHeader(statusCode)
 	createTransferObject(w, newError(message, statusCode))
+}
+
+func writeErrorsResponse(errors []ValidationError, statusCode int, w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusBadRequest)
+	var e ErrorCollection
+	createTransferObject(w, e.New(errors, statusCode))
 }
 
 func getValue(queryParams []string) string {

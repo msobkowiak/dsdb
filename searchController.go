@@ -54,12 +54,25 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		lonValue, _ := strconv.ParseFloat(lon, 64)
 
 		if field != "" && distance != "" {
-			data, err := elasticSearchRepo.GeoSearch(table, field, distance, latValue, lonValue)
-			writeResponse(data, err, w)
+			if !isValid(distance) {
+				writeErrorResponse("Invalid distance. Distance should be given in km or m.", 400, w)
+			} else {
+				data, err := elasticSearchRepo.GeoSearch(table, field, distance, latValue, lonValue)
+				writeResponse(data, err, w)
+			}
 		} else {
 			writeErrorResponse("Missing search parameters", 404, w)
 		}
 	}
+}
+
+func isValid(distance string) bool {
+	distanceUnit := distance[len(distance)-2 : len(distance)]
+	if distanceUnit != "km" && distanceUnit[1:2] != "m" {
+		return false
+	}
+
+	return true
 }
 
 func primaryKeySearch(rangeOperator, hashKey, rangeValue []string, table string, w http.ResponseWriter) {
